@@ -1,4 +1,4 @@
-// import styles from './Game.module.css';
+import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from 'socket.io-client';
 import axios from "axios";
@@ -18,6 +18,12 @@ export default function Game(props) {
     socket = io(CONNECTION_PORT);
     return () => {socket.disconnect()};
   }, []);
+
+  useEffect(() => {
+    socket.on("game_data", data => {
+      console.log(data);
+    });
+  }, [])
  
   const joinRoom = (e) => {
     e.preventDefault();
@@ -45,6 +51,18 @@ export default function Game(props) {
         });
       }
     });
+  }
+
+  const constructBoard = () => {
+    let indexes = []
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        indexes.push([i, j])
+      }
+    }
+    return <div className={styles.board}>
+      {indexes.map((i) => <div className={styles.square} style={{left: `${i[0]*5}vw`, top: `${i[1]*5}vw`}} key={`${i[0]}${i[1]}`} />)}
+    </div>
   }
 
   const craftJoiningErrors = () => {
@@ -80,6 +98,9 @@ export default function Game(props) {
         </form>
         {craftJoiningErrors()}
       </div>
-      : <>Hey!</>
+      : <div>
+        <div className={styles.title}>ampersand</div>
+        {constructBoard()}
+      </div>
   )
 }

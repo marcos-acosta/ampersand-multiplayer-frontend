@@ -1,0 +1,27 @@
+.title {
+  font-size: 4vw;
+  color: white;
+  width: 100%;
+  text-align: center;
+  text-shadow: 2px 2px 4px #0000006c;
+  font-family: 'IBM Plex Mono';
+}
+
+.board {
+  position: absolute;
+  top: 6vw;
+  left: 27.5vw;
+  width: 45vw;
+  height: 45vw;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.square {
+  background-color: rgba(255, 255, 255, 0);
+  outline: 1px solid rgb(238, 238, 238);
+  position: absolute;
+  display: inline-block;
+  width: 5vw;
+  height: 5vw;
+}
