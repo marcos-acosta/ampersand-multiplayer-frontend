@@ -21,11 +21,50 @@ export default function Game(props) {
   const [friendScore, setFriendScore] = useState(0);
   const [yourPosition, setYourPosition] = useState([]);
   const [friendPosition, setFriendPosition] = useState([]);
+  const [gameState, setGameState] = useState(0);
+
+  const colorMap = {
+    green: {
+      backgroundColor: 'white',
+      color: '#0F9D58'
+    },
+    blue: {
+      backgroundColor: 'white',
+      color: '#4285F4'
+    },
+    yellow: {
+      backgroundColor: 'white',
+      color: '#F4B400'
+    },
+    red: {
+      backgroundColor: 'white',
+      color: '#DB4437'
+    },
+    black: {
+      backgroundColor: 'white',
+      color: 'black'
+    },
+  }
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
     return () => {socket.disconnect()};
   }, []);
+
+  useEffect(() => {
+    let validKeys = new Set(['w', 'a', 's', 'd']);
+    if (gameState) {
+      document.addEventListener("keydown", (event) => {
+        let key = event.key;
+        if (validKeys.has(key)) {
+          socket.emit('keypress', {
+            key: key,
+            room_id: props.match.params.id,
+          });
+        }
+      })
+    }
+  }, [gameState, props.match.params.id]);
 
   useEffect(() => {
     if (yourUsername) {
@@ -40,6 +79,7 @@ export default function Game(props) {
           color: otherInfo.color,
           character: otherInfo.character
         })
+        setGameState(1);
       });
     }
   }, [yourUsername])
@@ -84,9 +124,9 @@ export default function Game(props) {
         indexes.push([i, j])
       }
     }
-    return <div className={styles.board}>
+    return <>
       {indexes.map((i) => <div className={styles.square} style={{left: `${i[0]*5}vw`, top: `${i[1]*5}vw`}} key={`${i[0]}${i[1]}`} />)}
-    </div>
+    </>
   }
 
   const craftJoiningErrors = () => {
@@ -111,7 +151,7 @@ export default function Game(props) {
               <option value="blue">Blue</option>
               <option value="yellow">Yellow</option>
               <option value="red">Red</option>
-              <option value="white">White</option>
+              <option value="black">Black</option>
           </select>
           <input
             required
@@ -124,7 +164,24 @@ export default function Game(props) {
       </div>
       : <div>
         <div className={styles.title}>ampersand</div>
-        {constructBoard()}
+        <div className={styles.board}>
+          {constructBoard()}
+          { gameState
+            ? <>
+              <div 
+                className={styles.player} 
+                style={{top: `${yourPosition[0]*5+1}vw`, left: `${yourPosition[1]*5+1}vw`, ...colorMap[yourData.color]}}>
+                {yourData.character}
+              </div>
+              <div 
+                className={styles.player} 
+                style={{top: `${friendPosition[0]*5+1}vw`, left: `${friendPosition[1]*5+1}vw`, ...colorMap[friendData.color]}}>
+                {friendData.character}
+              </div>
+            </>
+            : ''
+          }
+        </div>
         <br />
         {yourUsername} ({yourData.character}): {yourScore}
         <br />
@@ -133,6 +190,8 @@ export default function Game(props) {
             {friendUsername} ({friendData.character}): {friendScore}
           </>
           : ''}
+        {/* pos 1: {yourPosition[0]}
+        pos 2: {yourPosition[1]} */}
       </div>
   )
 }
