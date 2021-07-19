@@ -11,8 +11,16 @@ export default function Game(props) {
   const { value: username, bind: bindUsername } = useInput('');
   const { value: color, bind: bindColor } = useInput('green');
   const { value: character, bind: bindCharacter } = useInput('&');
-  const [joinedRoom, setJoinedRoom] = useState(false);
   const [joiningErrors, setJoiningErrors] = useState([]);
+  const [joinedRoom, setJoinedRoom] = useState(false);
+  const [yourUsername, setYourUsername] = useState("");
+  const [friendUsername, setFriendUsername] = useState("");
+  const [yourData, setYourData] = useState({});
+  const [friendData, setFriendData] = useState({});
+  const [yourScore, setYourScore] = useState(0);
+  const [friendScore, setFriendScore] = useState(0);
+  const [yourPosition, setYourPosition] = useState([]);
+  const [friendPosition, setFriendPosition] = useState([]);
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
@@ -20,15 +28,26 @@ export default function Game(props) {
   }, []);
 
   useEffect(() => {
-    socket.on("game_data", data => {
-      console.log(data);
-    });
-  }, [])
+    if (yourUsername) {
+      socket.on("start_info", (data) => {
+        let yourInfo = data.players[yourUsername];
+        setYourPosition(yourInfo.position);
+        let otherUsername = Object.keys(data.players).find(username => username !== yourUsername);
+        let otherInfo = data.players[otherUsername];
+        setFriendUsername(otherUsername);
+        setFriendPosition(otherInfo.position);
+        setFriendData({
+          color: otherInfo.color,
+          character: otherInfo.character
+        })
+      });
+    }
+  }, [yourUsername])
  
   const joinRoom = (e) => {
     e.preventDefault();
-    axios.post("http://localhost:4000/room_available", {room_id: props.match.params.id}).then(res => {
-      if (res.data.num_players >= 2) {
+    axios.post("http://localhost:4000/room_available", {room_id: props.match.params.id}).then(available_res => {
+      if (available_res.data.num_players >= 2) {
         setJoiningErrors(['filled']);
       } else {
         axios.post("http://localhost:4000/uniquely_identifying", {
@@ -36,17 +55,22 @@ export default function Game(props) {
           username: username,
           color: color,
           character: character
-        }).then(res => {
-          if (res.data.unique) {
+        }).then(unique_res => {
+          if (unique_res.data.unique) {
             socket.emit("join_room", {
               room_id: props.match.params.id,
               username: username,
               color: color,
               character: character
             });
+            setYourUsername(username);
+            setYourData({
+              color: color,
+              character: character
+            });
             setJoinedRoom(true);
           } else {
-            setJoiningErrors(res.data.reasons);
+            setJoiningErrors(unique_res.data.reasons);
           }
         });
       }
@@ -101,6 +125,14 @@ export default function Game(props) {
       : <div>
         <div className={styles.title}>ampersand</div>
         {constructBoard()}
+        <br />
+        {yourUsername} ({yourData.character}): {yourScore}
+        <br />
+        {friendUsername 
+          ? <>
+            {friendUsername} ({friendData.character}): {friendScore}
+          </>
+          : ''}
       </div>
   )
 }
