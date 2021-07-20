@@ -70,9 +70,26 @@ export default function Game(props) {
 
   useEffect(() => {
     if (friendUsername) {
+      const getInitialTarget = (pos, dir) => {
+        return [pos[0] + 0.15 * dir[0], pos[1] + 0.15 * dir[1]];
+      }
       socket.on("game_update", (data) => {
-        setYourPosition(data.players[yourUsername].position);
-        setFriendPosition(data.players[friendUsername].position);
+        let initial_target, final_pos;
+        if (data.playerMoved === yourUsername) {
+          final_pos = data.players[yourUsername].position;
+          initial_target = getInitialTarget(final_pos, data.direction);
+          setYourPosition(initial_target);
+          setTimeout(() => {
+            setYourPosition(final_pos);
+          }, 100);
+        } else {
+          final_pos = data.players[friendUsername].position;
+          initial_target = getInitialTarget(final_pos, data.direction);
+          setFriendPosition(initial_target);
+          setTimeout(() => {
+            setFriendPosition(final_pos);
+          }, 100);
+        }
         setScore(data.score);
       });
     }
