@@ -4,6 +4,9 @@ import { useHistory } from 'react-router-dom';
 import { useInput } from '../../hooks/useInput';
 import axios from "axios";
 
+// let CONNECTION_PORT = 'http://localhost:4000/';
+let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+
 export default function Homepage(props) {
   const { value:roomCode, bind: bindRoomCode } = useInput('');
   const [error, setError] = useState('')
@@ -11,7 +14,7 @@ export default function Homepage(props) {
 
   const joinRoom = async (e) => {
     e.preventDefault();
-    let res = await axios.post("http://localhost:4000/room_available", {room_id: roomCode});
+    let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
     if (res.data.num_players < 2) {
       history.push(`/${roomCode}`);
     } else {

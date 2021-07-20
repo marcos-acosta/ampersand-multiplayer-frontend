@@ -4,7 +4,8 @@ import io from 'socket.io-client';
 import axios from "axios";
 import { useEffect, useState } from 'react';
 
-let CONNECTION_PORT = 'http://localhost:4000/';
+// let CONNECTION_PORT = 'http://localhost:4000/';
+let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
 export default function Game(props) {
@@ -17,8 +18,7 @@ export default function Game(props) {
   const [friendUsername, setFriendUsername] = useState("");
   const [yourData, setYourData] = useState({});
   const [friendData, setFriendData] = useState({});
-  const [yourScore, setYourScore] = useState(0);
-  const [friendScore, setFriendScore] = useState(0);
+  const [score, setScore] = useState(0);
   const [yourPosition, setYourPosition] = useState([]);
   const [friendPosition, setFriendPosition] = useState([]);
   const [gameState, setGameState] = useState(0);
@@ -48,7 +48,9 @@ export default function Game(props) {
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
-    return () => {socket.disconnect()};
+    return () => {
+      socket.disconnect()
+    };
   }, []);
 
   useEffect(() => {
@@ -65,6 +67,16 @@ export default function Game(props) {
       })
     }
   }, [gameState, props.match.params.id]);
+
+  useEffect(() => {
+    if (friendUsername) {
+      socket.on("game_update", (data) => {
+        setYourPosition(data.players[yourUsername].position);
+        setFriendPosition(data.players[friendUsername].position);
+        setScore(data.score);
+      });
+    }
+  }, [yourUsername, friendUsername]);
 
   useEffect(() => {
     if (yourUsername) {
@@ -86,11 +98,11 @@ export default function Game(props) {
  
   const joinRoom = (e) => {
     e.preventDefault();
-    axios.post("http://localhost:4000/room_available", {room_id: props.match.params.id}).then(available_res => {
+    axios.post(`${CONNECTION_PORT}room_available`, {room_id: props.match.params.id}).then(available_res => {
       if (available_res.data.num_players >= 2) {
         setJoiningErrors(['filled']);
       } else {
-        axios.post("http://localhost:4000/uniquely_identifying", {
+        axios.post(`${CONNECTION_PORT}uniquely_identifying`, {
           room_id: props.match.params.id,
           username: username,
           color: color,
@@ -115,6 +127,16 @@ export default function Game(props) {
         });
       }
     });
+  }
+
+  const convertXYtoTopLeft = (position) => {
+    let x = position[0], y = position[1];
+    let left = x * 5 + 1;
+    let top = (8 - y) * 5 + 1;
+    return {
+      left: `${left}vw`,
+      top: `${top}vw`
+    }
   }
 
   const constructBoard = () => {
@@ -170,12 +192,12 @@ export default function Game(props) {
             ? <>
               <div 
                 className={styles.player} 
-                style={{top: `${yourPosition[0]*5+1}vw`, left: `${yourPosition[1]*5+1}vw`, ...colorMap[yourData.color]}}>
+                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color]}}>
                 {yourData.character}
               </div>
               <div 
                 className={styles.player} 
-                style={{top: `${friendPosition[0]*5+1}vw`, left: `${friendPosition[1]*5+1}vw`, ...colorMap[friendData.color]}}>
+                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color]}}>
                 {friendData.character}
               </div>
             </>
@@ -183,11 +205,13 @@ export default function Game(props) {
           }
         </div>
         <br />
-        {yourUsername} ({yourData.character}): {yourScore}
+        Score: {score}
+        <br />
+        {yourUsername} ({yourData.character})
         <br />
         {friendUsername 
           ? <>
-            {friendUsername} ({friendData.character}): {friendScore}
+            {friendUsername} ({friendData.character})
           </>
           : ''}
         {/* pos 1: {yourPosition[0]}
