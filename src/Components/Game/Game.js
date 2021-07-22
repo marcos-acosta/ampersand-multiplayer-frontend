@@ -8,6 +8,12 @@ import { useEffect, useState } from 'react';
 let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
+const SQUARE_WIDTH = 5;
+const validKeys = new Set(['w', 'a', 's', 'd', 'r']);
+const getInitialTarget = (pos, dir) => {
+  return [pos[0] + 0.15 * dir[0], pos[1] + 0.15 * dir[1]];
+}
+
 export default function Game(props) {
   const { value: username, bind: bindUsername } = useInput('');
   const { value: color, bind: bindColor } = useInput('green');
@@ -18,10 +24,14 @@ export default function Game(props) {
   const [friendUsername, setFriendUsername] = useState("");
   const [yourData, setYourData] = useState({});
   const [friendData, setFriendData] = useState({});
+  const [youAlive, setYouAlive] = useState(true);
+  const [friendAlive, setFriendAlive] = useState(true);
   const [score, setScore] = useState(0);
   const [yourPosition, setYourPosition] = useState([]);
   const [friendPosition, setFriendPosition] = useState([]);
   const [gameState, setGameState] = useState(0);
+  const [numBombs, setNumBombs] = useState(3);
+  const [enemies, setEnemies] = useState([]);
 
   const colorMap = {
     green: {
@@ -54,7 +64,6 @@ export default function Game(props) {
   }, []);
 
   useEffect(() => {
-    let validKeys = new Set(['w', 'a', 's', 'd']);
     if (gameState) {
       document.addEventListener("keydown", (event) => {
         let key = event.key;
@@ -70,9 +79,6 @@ export default function Game(props) {
 
   useEffect(() => {
     if (friendUsername) {
-      const getInitialTarget = (pos, dir) => {
-        return [pos[0] + 0.15 * dir[0], pos[1] + 0.15 * dir[1]];
-      }
       socket.on("game_update", (data) => {
         let initial_target, final_pos;
         if (data.playerMoved === yourUsername) {
@@ -91,6 +97,10 @@ export default function Game(props) {
           }, 100);
         }
         setScore(data.score);
+        setEnemies(data.enemies);
+        setNumBombs(data.bombs);
+        setYouAlive(data.players[yourUsername].alive);
+        setFriendAlive(data.players[friendUsername].alive);
       });
     }
   }, [yourUsername, friendUsername]);
@@ -148,12 +158,16 @@ export default function Game(props) {
 
   const convertXYtoTopLeft = (position) => {
     let x = position[0], y = position[1];
-    let left = x * 5 + 1;
-    let top = (8 - y) * 5 + 1;
+    let left = x * SQUARE_WIDTH + 1;
+    let top = (8 - y) * SQUARE_WIDTH + 1;
     return {
       left: `${left}vw`,
       top: `${top}vw`
-    }
+    };
+  }
+
+  const isEven = (coord) => {
+    return (coord[0] + yourPosition[0] + coord[1] + yourPosition[1]) % 2 !== 0;
   }
 
   const constructBoard = () => {
@@ -164,7 +178,18 @@ export default function Game(props) {
       }
     }
     return <>
-      {indexes.map((i) => <div className={styles.square} style={{left: `${i[0]*5}vw`, top: `${i[1]*5}vw`}} key={`${i[0]}${i[1]}`} />)}
+      {indexes.map((i) => <div className={styles.square} style={{left: `${i[0]*SQUARE_WIDTH}vw`, top: `${i[1]*SQUARE_WIDTH}vw`}} key={`${i[0]}${i[1]}`} />)}
+    </>
+  }
+
+  const showEnemies = () => {
+    return <>
+      {enemies.map(enemy => <div 
+        className={`${styles.enemy} ${isEven(enemy.position) ? styles.enemyEven : styles.enemyOdd}`} 
+        key={enemy.id} 
+        style={{...convertXYtoTopLeft(enemy.position)}}>
+          {isEven(enemy.position) ? 0 : 1}
+        </div>)}
     </>
   }
 
@@ -209,20 +234,23 @@ export default function Game(props) {
             ? <>
               <div 
                 className={styles.player} 
-                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color]}}>
+                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color], display: (youAlive ? 'block' : 'none')}}>
                 {yourData.character}
               </div>
               <div 
                 className={styles.player} 
-                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color]}}>
+                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color], display: (friendAlive ? 'block' : 'none')}}>
                 {friendData.character}
               </div>
+              {showEnemies()}
             </>
             : ''
           }
         </div>
         <br />
         Score: {score}
+        <br />
+        Bombs: {numBombs}
         <br />
         {yourUsername} ({yourData.character})
         <br />
@@ -231,8 +259,6 @@ export default function Game(props) {
             {friendUsername} ({friendData.character})
           </>
           : ''}
-        {/* pos 1: {yourPosition[0]}
-        pos 2: {yourPosition[1]} */}
       </div>
   )
 }
