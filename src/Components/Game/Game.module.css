@@ -49,11 +49,26 @@
     height: 3vw;
     top: 1vw;
     left: 1vw;
-    background-color: rgb(212, 191, 32);
-    color: rgb(37, 37, 37);
+    color: rgb(201, 164, 63);
+    background-color: rgb(253, 223, 55);
     font-size: 2vw;
     text-align: center;
     border-radius: 0.5vw;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(253, 223, 55, 0.4);
     font-family: 'IBM Plex Mono';
+}
+
+.reviver {
+  position: absolute;
+  width: 3vw;
+  height: 3vw;
+  top: 1vw;
+  left: 1vw;
+  background-color: rgb(155, 219, 71);
+  color: rgb(242, 250, 231);
+  font-size: 2vw;
+  text-align: center;
+  border-radius: 0.5vw;
+  box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 25px 0 rgba(123, 255, 1, 0.4);
+  font-family: 'IBM Plex Mono';
 }

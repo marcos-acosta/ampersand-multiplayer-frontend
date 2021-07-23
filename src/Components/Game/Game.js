@@ -34,6 +34,9 @@ export default function Game(props) {
   const [numBombs, setNumBombs] = useState(3);
   const [enemies, setEnemies] = useState([]);
   const [bombs, setBombs] = useState([]);
+  const [whoseTurn, setWhoseTurn] = useState("");
+  const [streak, setStreak] = useState(0);
+  const [reviverPosition, setReviverPosition] = useState(null);
 
   const colorMap = {
     green: {
@@ -85,11 +88,26 @@ export default function Game(props) {
         let initial_target, final_pos;
         if (data.playerMoved === yourUsername) {
           final_pos = data.players[yourUsername].position;
-          initial_target = getInitialTarget(final_pos, data.direction);
-          setYourPosition(initial_target);
-          setTimeout(() => {
-            setYourPosition(final_pos);
-          }, 100);
+          if (vectorsEqual(data.direction, [0, 0])) {
+            // Animate "shaking"
+            setYourPosition(addVectors(final_pos, [0.15, 0]));
+            setTimeout(() => {
+              setYourPosition(addVectors(final_pos, [-0.15, 0]));
+              setTimeout(() => {
+                setYourPosition(final_pos);
+              }, 75);
+            }, 75);
+          } else {
+            // Overshoot, then return to final position
+            initial_target = getInitialTarget(final_pos, data.direction);
+            setYourPosition(initial_target);
+            setTimeout(() => {
+              setYourPosition(final_pos);
+            }, 100);
+          }
+          if (data.revivedFriend) {
+            setFriendPosition(data.players[friendUsername].position);
+          }
         } else {
           final_pos = data.players[friendUsername].position;
           initial_target = getInitialTarget(final_pos, data.direction);
@@ -97,6 +115,9 @@ export default function Game(props) {
           setTimeout(() => {
             setFriendPosition(final_pos);
           }, 100);
+          if (data.revivedFriend) {
+            setYourPosition(data.players[yourUsername].position);
+          }
         }
         setScore(data.score);
         setEnemies(data.enemies);
@@ -104,6 +125,9 @@ export default function Game(props) {
         setNumBombs(data.num_bombs);
         setYouAlive(data.players[yourUsername].alive);
         setFriendAlive(data.players[friendUsername].alive);
+        setWhoseTurn(data.order[data.whose_turn]);
+        setStreak(data.streak);
+        setReviverPosition(data.reviver_position)
       });
     }
   }, [yourUsername, friendUsername]);
@@ -121,6 +145,7 @@ export default function Game(props) {
           color: otherInfo.color,
           character: otherInfo.character
         })
+        setWhoseTurn(data.order[data.whose_turn]);
         setGameState(1);
       });
     }
@@ -198,15 +223,31 @@ export default function Game(props) {
     </>
   }
 
+  const vectorsEqual = (v1, v2) => {
+    return v1[0] === v2[0] && v1[1] === v2[1];
+  }
+
+  const addVectors = (v1, v2) => {
+    return [v1[0] + v2[0], v1[1] + v2[1]];
+  }
+
   const showBombs = () => {
     return <>
       {bombs.map(bomb => 
         <div
           className={styles.bomb}
           style={{...convertXYtoTopLeft(bomb.position)}}
-          key={bomb.id}>@</div>
+          key={bomb.id}>*</div>
       )};
     </>
+  }
+
+  const showReviver = () => {
+    if (reviverPosition) {
+      return <div
+      className={styles.reviver}
+      style={{...convertXYtoTopLeft(reviverPosition)}}>&</div>
+    }
   }
 
   const craftJoiningErrors = () => {
@@ -247,6 +288,7 @@ export default function Game(props) {
         <div className={styles.board}>
           {constructBoard()}
           {showEnemies()}
+          {showReviver()}
           {showBombs()}
           { gameState
             ? <>
@@ -269,13 +311,15 @@ export default function Game(props) {
         <br />
         Bombs: {numBombs}
         <br />
-        {yourUsername} ({yourData.character})
+        {yourUsername} ({yourData.character}) {whoseTurn === yourUsername ? '<' : ''}
         <br />
         {friendUsername 
           ? <>
-            {friendUsername} ({friendData.character})
+            {friendUsername} ({friendData.character}) {whoseTurn === friendUsername ? '<' : ''}
           </>
           : ''}
+        <br />
+        {streak >= 3 ? <>streak: {streak}</> : ''}
       </div>
   )
 }
