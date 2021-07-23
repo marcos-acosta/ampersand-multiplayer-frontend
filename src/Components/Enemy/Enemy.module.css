@@ -1,0 +1,26 @@
+.enemy {
+  position: absolute;
+  width: 3vw;
+  height: 3vw;
+  top: 1vw;
+  left: 1vw;
+  background-color: rgb(27, 27, 27);
+  color: white;
+  font-size: 2vw;
+  text-align: center;
+  border-radius: 0.5vw;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  font-family: 'IBM Plex Mono';
+  z-index: 10;
+  transition-property: left, top, opacity;
+  transition-duration: 0.15s;
+  opacity: 0;
+}
+
+.enemyEven {
+  background-color: rgb(24, 31, 99);
+}
+
+.enemyOdd {
+  background-color: rgb(99, 29, 24);
+}

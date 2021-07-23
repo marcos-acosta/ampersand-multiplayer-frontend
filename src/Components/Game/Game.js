@@ -1,3 +1,4 @@
+import Enemy from './../Enemy/Enemy';
 import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from 'socket.io-client';
@@ -32,6 +33,7 @@ export default function Game(props) {
   const [gameState, setGameState] = useState(0);
   const [numBombs, setNumBombs] = useState(3);
   const [enemies, setEnemies] = useState([]);
+  const [bombs, setBombs] = useState([]);
 
   const colorMap = {
     green: {
@@ -98,7 +100,8 @@ export default function Game(props) {
         }
         setScore(data.score);
         setEnemies(data.enemies);
-        setNumBombs(data.bombs);
+        setBombs(data.bombs);
+        setNumBombs(data.num_bombs);
         setYouAlive(data.players[yourUsername].alive);
         setFriendAlive(data.players[friendUsername].alive);
       });
@@ -166,8 +169,8 @@ export default function Game(props) {
     };
   }
 
-  const isEven = (coord) => {
-    return (coord[0] + yourPosition[0] + coord[1] + yourPosition[1]) % 2 !== 0;
+  const isOdd = (coord) => {
+    return (coord[0] + Math.round(yourPosition[0]) + coord[1] + Math.round(yourPosition[1])) % 2 === 0;
   }
 
   const constructBoard = () => {
@@ -184,12 +187,25 @@ export default function Game(props) {
 
   const showEnemies = () => {
     return <>
-      {enemies.map(enemy => <div 
-        className={`${styles.enemy} ${isEven(enemy.position) ? styles.enemyEven : styles.enemyOdd}`} 
-        key={enemy.id} 
-        style={{...convertXYtoTopLeft(enemy.position)}}>
-          {isEven(enemy.position) ? 0 : 1}
-        </div>)}
+      {enemies.map(enemy => 
+        <Enemy 
+          isOdd={isOdd(enemy.position)} 
+          position={enemy.position} 
+          spawnDirection={enemy.spawnDirection} 
+          isNew={enemy.new}
+          key={enemy.id}/>
+      )};
+    </>
+  }
+
+  const showBombs = () => {
+    return <>
+      {bombs.map(bomb => 
+        <div
+          className={styles.bomb}
+          style={{...convertXYtoTopLeft(bomb.position)}}
+          key={bomb.id}>@</div>
+      )};
     </>
   }
 
@@ -230,19 +246,20 @@ export default function Game(props) {
         <div className={styles.title}>ampersand</div>
         <div className={styles.board}>
           {constructBoard()}
+          {showEnemies()}
+          {showBombs()}
           { gameState
             ? <>
               <div 
                 className={styles.player} 
-                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color], display: (youAlive ? 'block' : 'none')}}>
+                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color], opacity: (youAlive ? 1 : 0)}}>
                 {yourData.character}
               </div>
               <div 
                 className={styles.player} 
-                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color], display: (friendAlive ? 'block' : 'none')}}>
+                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color], opacity: (friendAlive ? 1 : 0)}}>
                 {friendData.character}
               </div>
-              {showEnemies()}
             </>
             : ''
           }
