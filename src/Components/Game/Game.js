@@ -14,53 +14,48 @@ const validKeys = new Set(['w', 'a', 's', 'd', 'r']);
 const getInitialTarget = (pos, dir) => {
   return [pos[0] + 0.15 * dir[0], pos[1] + 0.15 * dir[1]];
 }
+const defaultStats = {
+  hits: 0,
+  deaths: 0,
+  bombs_collected: 0
+}
 
 export default function Game(props) {
+  // Form
   const { value: username, bind: bindUsername } = useInput('');
   const { value: color, bind: bindColor } = useInput('green');
   const { value: character, bind: bindCharacter } = useInput('&');
+  // Game stuff
   const [joiningErrors, setJoiningErrors] = useState([]);
   const [joinedRoom, setJoinedRoom] = useState(false);
+  const [gameState, setGameState] = useState(0);
+  const [whoseTurn, setWhoseTurn] = useState("");
+  // Usernames
   const [yourUsername, setYourUsername] = useState("");
   const [friendUsername, setFriendUsername] = useState("");
+  // Personalization
   const [yourData, setYourData] = useState({});
   const [friendData, setFriendData] = useState({});
+  // Alive-ness
   const [youAlive, setYouAlive] = useState(true);
   const [friendAlive, setFriendAlive] = useState(true);
+  // Shared stats
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [turns, setTurns] = useState(0);
+  // Other stats
+  const [yourStats, setYourStats] = useState(defaultStats);
+  const [friendStats, setFriendStats] = useState(defaultStats);
+  // Position
   const [yourPosition, setYourPosition] = useState([]);
   const [friendPosition, setFriendPosition] = useState([]);
-  const [gameState, setGameState] = useState(0);
+  // Bombs
   const [yourBombs, setYourBombs] = useState(2);
   const [friendBombs, setFriendBombs] = useState(2);
+  // Spawnables
   const [enemies, setEnemies] = useState([]);
   const [bombs, setBombs] = useState([]);
-  const [whoseTurn, setWhoseTurn] = useState("");
-  const [streak, setStreak] = useState(0);
   const [reviverPosition, setReviverPosition] = useState(null);
-
-  const colorMap = {
-    green: {
-      backgroundColor: 'white',
-      color: '#0F9D58'
-    },
-    blue: {
-      backgroundColor: 'white',
-      color: '#4285F4'
-    },
-    yellow: {
-      backgroundColor: 'white',
-      color: '#F4B400'
-    },
-    red: {
-      backgroundColor: 'white',
-      color: '#DB4437'
-    },
-    black: {
-      backgroundColor: 'white',
-      color: 'black'
-    },
-  }
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
@@ -121,6 +116,7 @@ export default function Game(props) {
           }
         }
         setScore(data.score);
+        setTurns(data.turns);
         setEnemies(data.enemies);
         setBombs(data.bombs);
 
@@ -129,6 +125,17 @@ export default function Game(props) {
 
         setYourBombs(data.players[yourUsername].num_bombs);
         setFriendBombs(data.players[friendUsername].num_bombs);
+
+        setYourStats({
+          hits: data.players[yourUsername].hits,
+          deaths: data.players[yourUsername].deaths,
+          bombs_collected: data.players[yourUsername].bombs_collected
+        });
+        setFriendStats({
+          hits: data.players[friendUsername].hits,
+          deaths: data.players[friendUsername].deaths,
+          bombs_collected: data.players[friendUsername].bombs_collected
+        });
 
         setWhoseTurn(data.order[data.whose_turn]);
         setStreak(data.streak);
@@ -277,7 +284,7 @@ export default function Game(props) {
               <option value="blue">Blue</option>
               <option value="yellow">Yellow</option>
               <option value="red">Red</option>
-              <option value="black">Black</option>
+              <option value="orange">Orange</option>
           </select>
           <input
             required
@@ -298,22 +305,22 @@ export default function Game(props) {
           { gameState
             ? <>
               <div 
-                className={styles.player} 
-                style={{...convertXYtoTopLeft(yourPosition), ...colorMap[yourData.color], opacity: (youAlive ? 1 : 0)}}>
+                className={`${styles.player} ${styles[yourData.color]}`}
+                style={{...convertXYtoTopLeft(yourPosition), opacity: (youAlive ? 1 : 0)}}>
                 {yourData.character}
               </div>
               <div 
-                className={styles.player} 
-                style={{...convertXYtoTopLeft(friendPosition), ...colorMap[friendData.color], opacity: (friendAlive ? 1 : 0)}}>
+                className={`${styles.player} ${styles[friendData.color]}`}
+                style={{...convertXYtoTopLeft(friendPosition), opacity: (friendAlive ? 1 : 0)}}>
                 {friendData.character}
               </div>
             </>
             : ''
           }
         </div>
-        <br />
-        Score: {score}
-        <br />
+        <div class={styles.scoreContainer}>
+        {score}
+        </div>
         <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
           {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @
         </div>
@@ -324,6 +331,24 @@ export default function Game(props) {
           : ''}
         <br />
         {streak >= 3 ? <>streak: {streak}</> : ''}
+        <br />
+        turns: {turns}
+        <br /><br />
+        {yourUsername}
+        <br />
+        hits: {yourStats.hits}
+        <br />
+        bombs collected: {yourStats.bombs_collected}
+        <br />
+        deaths: {yourStats.deaths}
+        <br /><br />
+        {friendUsername}
+        <br />
+        hits: {friendStats.hits}
+        <br />
+        bombs collected: {friendStats.bombs_collected}
+        <br />
+        deaths: {friendStats.deaths}
       </div>
   )
 }
