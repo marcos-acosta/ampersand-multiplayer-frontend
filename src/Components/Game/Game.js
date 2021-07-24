@@ -31,7 +31,8 @@ export default function Game(props) {
   const [yourPosition, setYourPosition] = useState([]);
   const [friendPosition, setFriendPosition] = useState([]);
   const [gameState, setGameState] = useState(0);
-  const [numBombs, setNumBombs] = useState(3);
+  const [yourBombs, setYourBombs] = useState(2);
+  const [friendBombs, setFriendBombs] = useState(2);
   const [enemies, setEnemies] = useState([]);
   const [bombs, setBombs] = useState([]);
   const [whoseTurn, setWhoseTurn] = useState("");
@@ -122,9 +123,13 @@ export default function Game(props) {
         setScore(data.score);
         setEnemies(data.enemies);
         setBombs(data.bombs);
-        setNumBombs(data.num_bombs);
+
         setYouAlive(data.players[yourUsername].alive);
         setFriendAlive(data.players[friendUsername].alive);
+
+        setYourBombs(data.players[yourUsername].num_bombs);
+        setFriendBombs(data.players[friendUsername].num_bombs);
+
         setWhoseTurn(data.order[data.whose_turn]);
         setStreak(data.streak);
         setReviverPosition(data.reviver_position)
@@ -237,7 +242,7 @@ export default function Game(props) {
         <div
           className={styles.bomb}
           style={{...convertXYtoTopLeft(bomb.position)}}
-          key={bomb.id}>*</div>
+          key={bomb.id}>@</div>
       )};
     </>
   }
@@ -309,14 +314,13 @@ export default function Game(props) {
         <br />
         Score: {score}
         <br />
-        Bombs: {numBombs}
-        <br />
-        {yourUsername} ({yourData.character}) {whoseTurn === yourUsername ? '<' : ''}
-        <br />
+        <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
+          {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @
+        </div>
         {friendUsername 
-          ? <>
-            {friendUsername} ({friendData.character}) {whoseTurn === friendUsername ? '<' : ''}
-          </>
+          ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
+            {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @
+          </div>
           : ''}
         <br />
         {streak >= 3 ? <>streak: {streak}</> : ''}

@@ -72,3 +72,12 @@
   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 25px 0 rgba(123, 255, 1, 0.4);
   font-family: 'IBM Plex Mono';
 }
+
+.nameContainer {
+  padding: 1vw;
+  width: 20vw;
+}
+
+.selected {
+  background-color: rgba(0, 0, 0, 0.274);
+}
