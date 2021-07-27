@@ -10,7 +10,6 @@ let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
 const SQUARE_WIDTH = 5;
-const validKeys = new Set(['w', 'a', 's', 'd', 'r']);
 const getInitialTarget = (pos, dir) => {
   return [pos[0] + 0.15 * dir[0], pos[1] + 0.15 * dir[1]];
 }
@@ -43,6 +42,7 @@ export default function Game(props) {
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [turns, setTurns] = useState(0);
+  const [turnEnder, setTurnEnder] = useState("");
   // Other stats
   const [yourStats, setYourStats] = useState(defaultStats);
   const [friendStats, setFriendStats] = useState(defaultStats);
@@ -56,6 +56,7 @@ export default function Game(props) {
   const [enemies, setEnemies] = useState([]);
   const [bombs, setBombs] = useState([]);
   const [reviverPosition, setReviverPosition] = useState(null);
+  const [nukePosition, setNukePosition] = useState(null);
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
@@ -67,18 +68,52 @@ export default function Game(props) {
   useEffect(() => {
     if (gameState) {
       document.addEventListener("keydown", (event) => {
-        let key = event.key;
-        if (validKeys.has(key)) {
-          socket.emit('keypress', {
-            key: key,
-            room_id: props.match.params.id,
-          });
-        }
+        socket.emit('keypress', {
+          key: event.key,
+          room_id: props.match.params.id,
+        });
       })
     }
   }, [gameState, props.match.params.id]);
 
   useEffect(() => {
+    const setData = (data) => {
+      setScore(data.score);
+      setTurns(data.turns);
+      setEnemies(data.enemies);
+      setBombs(data.bombs);
+
+      setYouAlive(data.players[yourUsername].alive);
+      setFriendAlive(data.players[friendUsername].alive);
+
+      setYourBombs(data.players[yourUsername].num_bombs);
+      setFriendBombs(data.players[friendUsername].num_bombs);
+
+      setYourStats({
+        hits: data.players[yourUsername].hits,
+        deaths: data.players[yourUsername].deaths,
+        bombs_collected: data.players[yourUsername].bombs_collected
+      });
+      setFriendStats({
+        hits: data.players[friendUsername].hits,
+        deaths: data.players[friendUsername].deaths,
+        bombs_collected: data.players[friendUsername].bombs_collected
+      });
+
+      setWhoseTurn(data.order[data.whose_turn]);
+      setStreak(data.streak);
+      setReviverPosition(data.reviver_position);
+      setNukePosition(data.nuke_position);
+
+      if (data.order.length === 1) {
+        setTurnEnder(data.order[0]);
+      } else if (data.order.length === 2) {
+        setTurnEnder(data.order[1]);
+      } else {
+        setTurnEnder("");
+      }
+    }
+
     if (friendUsername) {
       socket.on("game_update", (data) => {
         let initial_target, final_pos;
@@ -115,31 +150,21 @@ export default function Game(props) {
             setYourPosition(data.players[yourUsername].position);
           }
         }
-        setScore(data.score);
-        setTurns(data.turns);
-        setEnemies(data.enemies);
-        setBombs(data.bombs);
+        setData(data);
+      });
 
-        setYouAlive(data.players[yourUsername].alive);
-        setFriendAlive(data.players[friendUsername].alive);
-
-        setYourBombs(data.players[yourUsername].num_bombs);
-        setFriendBombs(data.players[friendUsername].num_bombs);
-
-        setYourStats({
-          hits: data.players[yourUsername].hits,
-          deaths: data.players[yourUsername].deaths,
-          bombs_collected: data.players[yourUsername].bombs_collected
-        });
-        setFriendStats({
-          hits: data.players[friendUsername].hits,
-          deaths: data.players[friendUsername].deaths,
-          bombs_collected: data.players[friendUsername].bombs_collected
-        });
-
-        setWhoseTurn(data.order[data.whose_turn]);
-        setStreak(data.streak);
-        setReviverPosition(data.reviver_position)
+      socket.on("room_reset", (data) => {
+        setData(data);
+        let usernames = Object.keys(data.players);
+        for (let i = 0; i < usernames.length; i++) {
+          let username = usernames[i];
+          let playerPosition = data.players[username].position
+          if (username === yourUsername) {
+            setYourPosition(playerPosition);
+          } else {
+            setFriendPosition(playerPosition);
+          }
+        }
       });
     }
   }, [yourUsername, friendUsername]);
@@ -158,6 +183,7 @@ export default function Game(props) {
           character: otherInfo.character
         })
         setWhoseTurn(data.order[data.whose_turn]);
+        setTurnEnder(data.order[1]);
         setGameState(1);
       });
     }
@@ -262,6 +288,14 @@ export default function Game(props) {
     }
   }
 
+  const showNuke = () => {
+    if (nukePosition) {
+      return <div
+      className={styles.nuke}
+      style={{...convertXYtoTopLeft(nukePosition)}}>ø</div>
+    }
+  }
+
   const craftJoiningErrors = () => {
     return <ul>
       {joiningErrors.map((reason, i) => <li key={i}>{reason}</li>)}
@@ -302,6 +336,7 @@ export default function Game(props) {
           {showEnemies()}
           {showReviver()}
           {showBombs()}
+          {showNuke()}
           { gameState
             ? <>
               <div 
@@ -322,11 +357,11 @@ export default function Game(props) {
         {score}
         </div>
         <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
-          {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @
+          {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
         </div>
         {friendUsername 
           ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
-            {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @
+            {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
           </div>
           : ''}
         <br />

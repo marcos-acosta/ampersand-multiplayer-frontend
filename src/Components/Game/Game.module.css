@@ -30,7 +30,7 @@
   position: absolute;
   width: 3vw;
   height: 3vw;
-  background-color: rgb(32, 32, 32);
+  background-color: rgb(41, 41, 41);
   color: white;
   font-size: 2vw;
   text-align: center;
@@ -69,6 +69,21 @@
   text-align: center;
   border-radius: 0.5vw;
   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 25px 0 rgba(123, 255, 1, 0.4);
+  font-family: 'IBM Plex Mono';
+}
+
+.nuke {
+  position: absolute;
+  width: 3vw;
+  height: 3vw;
+  top: 1vw;
+  left: 1vw;
+  background-color: rgb(219, 71, 71);
+  color: rgb(236, 150, 101);
+  font-size: 2vw;
+  text-align: center;
+  border-radius: 0.5vw;
+  box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 25px 0 rgba(219, 71, 71, 0.4);
   font-family: 'IBM Plex Mono';
 }
 
