@@ -1,7 +1,9 @@
 .title {
-  font-size: 4vw;
+  position: absolute;
+  top: 2vw;
+  font-size: 3vw;
   color: white;
-  width: 100%;
+  width: 40vw;
   text-align: center;
   text-shadow: 2px 2px 4px #0000006c;
   font-family: 'IBM Plex Mono';
@@ -9,8 +11,8 @@
 
 .board {
   position: absolute;
-  top: 6vw;
-  left: 27.5vw;
+  top: 2vw;
+  left: 40vw;
   width: 45vw;
   height: 45vw;
   background-color: white;
@@ -88,15 +90,23 @@
 }
 
 .nameContainer {
+  width: 100%;
   padding: 1vw;
-  width: 20vw;
+  box-sizing: border-box;
 }
 
 .scoreContainer {
-  padding: 1vw;
-  font-size: 2.5vw;
-  width: 20vw;
+  font-size: 4vw;
+  width: 100%;
   text-align: center;
+  margin-top: 1vw;
+}
+
+.turnsContainer {
+  font-size: 1.5vw;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 2vw;
 }
 
 .selected {
@@ -121,4 +131,98 @@
 
 .orange {
   color: rgb(245, 131, 55);
+}
+
+.statsPanel {
+  width: 30vw;
+  font-size: 1.25vw;
+  left: 5vw;
+  padding: 1vw;
+  background-color: rgba(0, 0, 0, 0.26);
+  position: absolute;
+  top: 8vw;
+  box-sizing: border-box;
+  height: 30vw;
+}
+
+.statsTable {
+  width: 100%;
+  margin-top: 2vw;
+  table-layout: fixed;
+}
+
+.grayText {
+  color: rgb(197, 197, 197);
+}
+
+.whiteText {
+  color: white;
+}
+
+.streakContainer {
+  background-color: rgba(0, 0, 0, 0.26);
+  padding: 0.75vw;
+  box-sizing: border-box;
+  width: 9vw;
+  position: absolute;
+  top: 9vw;
+  left: 25vw;
+  text-align: center;
+  font-size: 1vw;
+}
+
+.gameOverSmokescreen {
+  position: absolute;
+  top: 2vw;
+  left: 40vw;
+  width: 45vw;
+  height: 45vw;
+  background-color: white;
+  background-color: rgba(0, 0, 0, 0.26);
+}
+
+.gameOverScreen {
+  position: absolute;
+  width: 20vw;
+  height: 10vw;
+  left: 52.5vw;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  top: 19.5vw;
+  text-align: center;
+  color: rgb(58, 58, 58);
+  padding: 1vw;
+  box-sizing: border-box;
+  z-index: 20;
+}
+
+.gameOverText {
+  font-size: 1.7vw;
+  position: absolute;
+  top: 1vw;
+  left: 0vw;
+  width: 100%;
+  text-align: center;
+}
+
+.gameOverScore {
+  font-size: 2.6vw;
+  position: absolute;
+  top: 3.5vw;
+  left: 0vw;
+  width: 100%;
+  text-align: center;
+}
+
+.darkGrayText {
+  color: rgb(73, 73, 73);
+}
+
+.tryAgainText {
+  font-size: 1vw;
+  position: absolute;
+  bottom: 1vw;
+  left: 0vw;
+  width: 100%;
+  text-align: center;
 }

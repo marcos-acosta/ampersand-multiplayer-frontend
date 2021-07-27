@@ -5,8 +5,8 @@ import io from 'socket.io-client';
 import axios from "axios";
 import { useEffect, useState } from 'react';
 
-// let CONNECTION_PORT = 'http://localhost:4000/';
-let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+let CONNECTION_PORT = 'http://localhost:4000/';
+// let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
 const SQUARE_WIDTH = 5;
@@ -27,8 +27,9 @@ export default function Game(props) {
   // Game stuff
   const [joiningErrors, setJoiningErrors] = useState([]);
   const [joinedRoom, setJoinedRoom] = useState(false);
-  const [gameState, setGameState] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
   const [whoseTurn, setWhoseTurn] = useState("");
+  const [gameState, setGameState] = useState("normal");
   // Usernames
   const [yourUsername, setYourUsername] = useState("");
   const [friendUsername, setFriendUsername] = useState("");
@@ -66,7 +67,7 @@ export default function Game(props) {
   }, []);
 
   useEffect(() => {
-    if (gameState) {
+    if (gameStarted) {
       document.addEventListener("keydown", (event) => {
         socket.emit('keypress', {
           key: event.key,
@@ -74,7 +75,7 @@ export default function Game(props) {
         });
       })
     }
-  }, [gameState, props.match.params.id]);
+  }, [gameStarted, props.match.params.id]);
 
   useEffect(() => {
     const setData = (data) => {
@@ -104,6 +105,7 @@ export default function Game(props) {
       setStreak(data.streak);
       setReviverPosition(data.reviver_position);
       setNukePosition(data.nuke_position);
+      setGameState(data.game_state);
 
       if (data.order.length === 1) {
         setTurnEnder(data.order[0]);
@@ -184,7 +186,7 @@ export default function Game(props) {
         })
         setWhoseTurn(data.order[data.whose_turn]);
         setTurnEnder(data.order[1]);
-        setGameState(1);
+        setGameStarted(true);
       });
     }
   }, [yourUsername])
@@ -330,14 +332,14 @@ export default function Game(props) {
         {craftJoiningErrors()}
       </div>
       : <div>
-        <div className={styles.title}>ampersand</div>
+        <div className={styles.title}><u>ampersand</u></div>
         <div className={styles.board}>
           {constructBoard()}
           {showEnemies()}
           {showReviver()}
           {showBombs()}
           {showNuke()}
-          { gameState
+          { gameStarted
             ? <>
               <div 
                 className={`${styles.player} ${styles[yourData.color]}`}
@@ -353,37 +355,66 @@ export default function Game(props) {
             : ''
           }
         </div>
-        <div class={styles.scoreContainer}>
-        {score}
-        </div>
-        <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
-          {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
-        </div>
-        {friendUsername 
-          ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
-            {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
+        <div className={styles.statsPanel}>
+          <div className={styles.scoreContainer}>
+            {score}
           </div>
-          : ''}
-        <br />
-        {streak >= 3 ? <>streak: {streak}</> : ''}
-        <br />
-        turns: {turns}
-        <br /><br />
-        {yourUsername}
-        <br />
-        hits: {yourStats.hits}
-        <br />
-        bombs collected: {yourStats.bombs_collected}
-        <br />
-        deaths: {yourStats.deaths}
-        <br /><br />
-        {friendUsername}
-        <br />
-        hits: {friendStats.hits}
-        <br />
-        bombs collected: {friendStats.bombs_collected}
-        <br />
-        deaths: {friendStats.deaths}
+          <div className={`${styles.turnsContainer} ${styles.grayText}`}>
+            {turns}
+          </div>
+          <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
+            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
+          </div>
+          {friendUsername 
+            ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
+              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
+            </div>
+            : <span className={styles.grayText}>{'\u00A0\u00A0'} waiting for partner...</span>}
+          <table className={styles.statsTable}>
+            <tr>
+              <td />
+              <td className={styles.grayText}>{yourUsername}</td>
+              <td className={styles.grayText}>{friendUsername ? friendUsername : '---'}</td>
+            </tr>
+            <tr>
+              <td className={styles.grayText}>[]</td>
+              <td>{yourStats.hits}</td>
+              <td>{friendStats.hits}</td>
+            </tr>
+            <tr>
+              <td className={styles.grayText}>@←</td>
+              <td>{yourStats.bombs_collected}</td>
+              <td>{friendStats.bombs_collected}</td>
+            </tr>
+            <tr>
+              <td className={styles.grayText}>†</td>
+              <td>{yourStats.deaths}</td>
+              <td>{friendStats.deaths}</td>
+            </tr>
+          </table>
+        </div>
+        {streak >= 3 ? 
+          <div className={`${styles.streakContainer} ${styles.grayText}`}>
+            streak: <span className={styles.whiteText}>{streak}</span>
+          </div> : ''
+        }
+        {
+          gameState === 'game_over' ? 
+          <>
+            <div className={styles.gameOverSmokescreen} />
+            <div className={styles.gameOverScreen}>
+              <div className={`${styles.gameOverText} ${styles.darkGrayText}`}>
+                [&]
+              </div>
+              <div className={styles.gameOverScore}>
+                {score}
+              </div>
+              <div className={`${styles.tryAgainText} ${styles.darkGrayText}`}>
+                press enter to try again
+              </div>
+            </div>
+          </> : ''
+        }
       </div>
   )
 }
