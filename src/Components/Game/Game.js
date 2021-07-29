@@ -192,6 +192,9 @@ export default function Game(props) {
   }, [yourUsername])
  
   const joinRoom = (e) => {
+    if (!username || !character) {
+      return;
+    }
     e.preventDefault();
     axios.post(`${CONNECTION_PORT}room_available`, {room_id: props.match.params.id}).then(available_res => {
       if (available_res.data.num_players >= 2) {
@@ -299,39 +302,67 @@ export default function Game(props) {
   }
 
   const craftJoiningErrors = () => {
-    return <ul>
-      {joiningErrors.map((reason, i) => <li key={i}>{reason}</li>)}
-    </ul>
+    return <>
+      {joiningErrors.map((reason, i) => <><span key={i}>{translateError(reason)}</span><br /></>)}
+    </>
+  }
+
+  const translateError = (error) => {
+    let err;
+    if (error === 'filled') {
+      err = 'the room filled up before you could join';
+    } else if (error === 'username') {
+      err = 'your partner has already taken that username'
+    } else if (error === 'appearance') {
+      err = "your appearance matches your partner's; change your color or character"
+    }
+    return `[!] ${err} [!]`
   }
 
   return (
-    (!joinedRoom)
-      ? <div>
-        <form>
-          <input
-            required
-            placeholder="Username"
-            {...bindUsername} />
-          <select
-            required
-            placeholder="Color"
-            {...bindColor} >
-              <option value="green">Green</option>
-              <option value="blue">Blue</option>
-              <option value="yellow">Yellow</option>
-              <option value="red">Red</option>
-              <option value="orange">Orange</option>
-          </select>
-          <input
-            required
-            placeholder="bindCharacter"
-            maxLength="1"
-            {...bindCharacter} />
-          <button onClick={joinRoom}>Join room</button>
-        </form>
-        {craftJoiningErrors()}
+    <>
+    {(!joinedRoom)
+      ? <div className={styles.customizeScreen}>
+        <div className={styles.inputDiv}>
+          <form>
+            <input
+              required
+              placeholder="username"
+              maxLength="16"
+              className={`${styles.customInput} ${styles.usernameInput}`}
+              {...bindUsername} />
+            <div className={styles.customizeDiv}>
+              <select
+                required
+                placeholder="color"
+                className={styles.colorSelector}
+                {...bindColor} >
+                  <option value="green">green</option>
+                  <option value="blue">blue</option>
+                  <option value="yellow">yellow</option>
+                  <option value="red">red</option>
+                  <option value="orange">orange</option>
+              </select>
+              <input
+                required
+                placeholder="&"
+                maxLength="1"
+                className={`${styles.customInput} ${styles.characterInput}`}
+                size="1"
+                {...bindCharacter} />
+            </div>
+            <button onClick={joinRoom} className={`${styles.gameButton} ${styles.enterButton}`}>join room</button>
+            <div className={`${styles.player} ${styles[color]} ${styles.demoPlayer}`}>
+              {character}
+            </div>
+          </form>
+        </div>
+        <div className={styles.joiningErrorsDiv}>
+          {craftJoiningErrors()}
+        </div>
       </div>
-      : <div>
+      : ''}
+      <div>
         <div className={styles.title}><u>ampersand</u></div>
         <div className={styles.board}>
           {constructBoard()}
@@ -362,35 +393,40 @@ export default function Game(props) {
           <div className={`${styles.turnsContainer} ${styles.grayText}`}>
             {turns}
           </div>
-          <div className={`${styles.nameContainer} ${whoseTurn === yourUsername ? styles.selected : ''}`}>
-            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
+          <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''}`}>
+            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername ? yourUsername : '---'} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
           </div>
           {friendUsername 
             ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
               {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
             </div>
-            : <span className={styles.grayText}>{'\u00A0\u00A0'} waiting for partner...</span>}
+            : <div className={`${styles.nameContainer}`}>
+                <span className={styles.grayText}>{'\u00A0\u00A0'}waiting for partner...</span>
+              </div>
+            }
           <table className={styles.statsTable}>
-            <tr>
-              <td />
-              <td className={styles.grayText}>{yourUsername}</td>
-              <td className={styles.grayText}>{friendUsername ? friendUsername : '---'}</td>
-            </tr>
-            <tr>
-              <td className={styles.grayText}>[]</td>
-              <td>{yourStats.hits}</td>
-              <td>{friendStats.hits}</td>
-            </tr>
-            <tr>
-              <td className={styles.grayText}>@←</td>
-              <td>{yourStats.bombs_collected}</td>
-              <td>{friendStats.bombs_collected}</td>
-            </tr>
-            <tr>
-              <td className={styles.grayText}>†</td>
-              <td>{yourStats.deaths}</td>
-              <td>{friendStats.deaths}</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td />
+                <td className={styles.grayText}>{yourUsername ? yourUsername : '---'}</td>
+                <td className={styles.grayText}>{friendUsername ? friendUsername : '---'}</td>
+              </tr>
+              <tr>
+                <td className={styles.grayText}>[]</td>
+                <td>{yourStats.hits}</td>
+                <td>{friendStats.hits}</td>
+              </tr>
+              <tr>
+                <td className={styles.grayText}>@←</td>
+                <td>{yourStats.bombs_collected}</td>
+                <td>{friendStats.bombs_collected}</td>
+              </tr>
+              <tr>
+                <td className={styles.grayText}>†</td>
+                <td>{yourStats.deaths}</td>
+                <td>{friendStats.deaths}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
         {streak >= 3 ? 
@@ -416,5 +452,6 @@ export default function Game(props) {
           </> : ''
         }
       </div>
+    </>
   )
 }

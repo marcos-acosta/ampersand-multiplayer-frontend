@@ -1,4 +1,4 @@
-// import styles from './Homepage.module.css';
+import styles from './Homepage.module.css';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useInput } from '../../hooks/useInput';
@@ -15,26 +15,44 @@ export default function Homepage(props) {
 
   const joinRoom = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
-    if (res.data.num_players < 2) {
-      history.push(`/${roomCode}`);
-    } else {
-      setError('That room is already full.');
+    if (roomCode) {
+      let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
+      if (res.data.num_players < 2) {
+        history.push(`/${roomCode}`);
+        setSubmitted(true);
+      } else {
+        setError('[!] that room is already full [!]');
+      }
     }
   }
 
   return (
     <div>
-      Ampersand multiplayer
-      <form>
-        <input
-          required
-          placeholder="Room code"
-          {...bindRoomCode} />
-          {!submitted ? <button onClick={joinRoom}> Join room </button> : 'Loading...'}
-      </form>
-      {error}
+      <div className={styles.titleText}>
+        ampersand
+      </div>
+      <div className={styles.subtitleText}>
+        [] () [] & @
+      </div>
+      <div className={`${styles.homepageButton} ${styles.singleplayer} ${styles.info}`}>
+        [singleplayer]←
+        <span className={styles.tooltiptext}>coming soon!</span>
+      </div>
+      <div className={styles.multiplayerContents}>
+        <form>
+          <input
+            required
+            placeholder="Room code"
+            className={styles.inputRoomCode}
+            {...bindRoomCode} />
+            {!submitted ? 
+              <button onClick={joinRoom} className={`${styles.homepageButton} ${styles.multiplayer}`}> [multiplayer]← </button>
+              : <div className={`${styles.homepageButton} ${styles.multiplayer}`}> loading... </div>}
+        </form>
+      </div>
+      <div className={styles.errorDiv}>
+        {error}
+      </div>
     </div>
   )
 }
