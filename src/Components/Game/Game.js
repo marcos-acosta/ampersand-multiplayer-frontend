@@ -418,11 +418,11 @@ export default function Game(props) {
             {turns}
           </div>
           <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''}`}>
-            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[yourData.color]}>{yourData.character}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
+            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[yourData.color]}>{yourUsername ? yourData.character : '?'}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
           </div>
           {friendUsername 
             ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
-              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[friendData.color]}>{friendData.character}]</span> {friendUsername}: {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
+              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[friendData.color]}>{friendData.character}</span>] {friendUsername}: {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
             </div>
             : <div className={`${styles.nameContainer}`}>
                 <span className={styles.grayText}>{'\u00A0\u00A0'}[?] waiting for partner...</span>
