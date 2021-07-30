@@ -4,8 +4,8 @@ import { useHistory } from 'react-router-dom';
 import { useInput } from '../../hooks/useInput';
 import axios from "axios";
 
-// let CONNECTION_PORT = 'http://localhost:4000/';
-let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+let CONNECTION_PORT = 'http://localhost:4000/';
+// let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 
 export default function Homepage(props) {
   const { value:roomCode, bind: bindRoomCode } = useInput('');
@@ -20,12 +20,13 @@ export default function Homepage(props) {
         setError('[!] the room code should only contain alphanumerics [!]')
         return;
       }
+      setSubmitted(true);
       let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
       if (res.data.num_players < 2) {
-        setSubmitted(true);
         history.push(`/${roomCode}`);
       } else {
         setError('[!] that room is already full [!]');
+        setSubmitted(false);
       }
     }
   }
