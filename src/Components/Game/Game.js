@@ -19,6 +19,10 @@ const defaultStats = {
   bombs_collected: 0
 }
 
+const validUsername = (username_) => {
+  return username_.match(/^[0-9a-zA-Z_]+$/);
+}
+
 export default function Game(props) {
   // Form
   const { value: username, bind: bindUsername } = useInput('');
@@ -58,6 +62,8 @@ export default function Game(props) {
   const [bombs, setBombs] = useState([]);
   const [reviverPosition, setReviverPosition] = useState(null);
   const [nukePosition, setNukePosition] = useState(null);
+  // Other
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
@@ -196,6 +202,10 @@ export default function Game(props) {
       return;
     }
     e.preventDefault();
+    if (!validUsername(username)) {
+      setJoiningErrors(['alphanumerics']);
+      return;
+    }
     axios.post(`${CONNECTION_PORT}room_available`, {room_id: props.match.params.id}).then(available_res => {
       if (available_res.data.num_players >= 2) {
         setJoiningErrors(['filled']);
@@ -238,7 +248,11 @@ export default function Game(props) {
   }
 
   const isOdd = (coord) => {
-    return (coord[0] + Math.round(yourPosition[0]) + coord[1] + Math.round(yourPosition[1])) % 2 === 0;
+    return areOdd(yourPosition, coord);
+  }
+
+  const areOdd = (coord1, coord2) => {
+    return (Math.round(coord1[0]) + Math.round(coord2[0]) + Math.round(coord1[1]) + Math.round(coord2[1])) % 2 === 0;
   }
 
   const constructBoard = () => {
@@ -315,6 +329,10 @@ export default function Game(props) {
       err = 'your partner has already taken that username'
     } else if (error === 'appearance') {
       err = "your appearance matches your partner's; change your color or character"
+    } else if (error === 'alphanumerics') {
+      err = 'username should only contain alphanumerics and underscores'
+    } else {
+      err = "¿error?"
     }
     return `[!] ${err} [!]`
   }
@@ -386,6 +404,12 @@ export default function Game(props) {
             : ''
           }
         </div>
+        <div className={styles.info} onClick={() => setShowHelp(true)}>?</div>
+        <div 
+          className={styles.flipper} 
+          style={{opacity: (friendPosition.length && friendAlive && !areOdd(yourPosition, friendPosition)) ? 1 : 0}}>
+          []⇄()
+        </div> 
         <div className={styles.statsPanel}>
           <div className={styles.scoreContainer}>
             {score}
@@ -394,14 +418,14 @@ export default function Game(props) {
             {turns}
           </div>
           <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''}`}>
-            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}{yourUsername ? yourUsername : '---'} ({yourData.character}): {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
+            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[yourData.color]}>{yourData.character}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
           </div>
           {friendUsername 
             ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
-              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}{friendUsername} ({friendData.character}): {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
+              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[friendData.color]}>{friendData.character}]</span> {friendUsername}: {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
             </div>
             : <div className={`${styles.nameContainer}`}>
-                <span className={styles.grayText}>{'\u00A0\u00A0'}waiting for partner...</span>
+                <span className={styles.grayText}>{'\u00A0\u00A0'}[?] waiting for partner...</span>
               </div>
             }
           <table className={styles.statsTable}>
@@ -450,6 +474,49 @@ export default function Game(props) {
               </div>
             </div>
           </> : ''
+        }
+        {
+          showHelp ? <div className={styles.helpContainer}>
+            <div className={styles.helpPanel}>
+              <div className={styles.helpTitle}>
+                ¿&?
+              </div>
+              <hr />
+              <table className={styles.fullWidthTable}>
+                <tbody>
+                  <tr>
+                    <td className={`${styles.lineOnRight} ${styles.help}`}>
+                      <ul>
+                        <li>use <b>wasd</b></li>
+                        <li><b>enemies</b> look like [] and ()</li>
+                        <li>[] and () behave exactly alike, but <b>the distinction is helpful</b> to the player</li>
+                        <li>enemies move <b>after you and your partner</b> move</li>
+                        <li>kill an enemy <b>adjacent to you</b> using wasd</li>
+                        <li>enemies adjacent to you will kill you on their turn</li>
+                        <li><b>hitting the edge</b> is a valid strategy</li>
+                        <li>enemies target the <b>nearest player</b></li>
+                        <li>press <b>space</b> to use a <b>bomb</b> (@)</li>
+                        <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
+                      </ul>
+                    </td>
+                    <td className={styles.help}>
+                      <ul>
+                        <li>your partner can be revived by collecting a <b>&</b></li>
+                        <li>clear all enemies on the board by collecting a <b>ø</b></li>
+                        <li>the bombs you collect <b>are your own</b>, but are transferred to your partner in case of death as life insurance</li>
+                        <li>a revived player will receive <b>one bomb</b> from the reviver, provided they have ≥2</li>
+                        <li>note that you and your partner may see enemies differently; a <b>helpful indicator</b> is provided below the board</li>
+                        <li><b>occasionally</b>, have fun</li>
+                      </ul>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className={`${styles.gameButton} ${styles.helpOkButton}`} onClick={() => setShowHelp(false)}>
+                ok
+              </div>
+            </div>
+          </div> : ''
         }
       </div>
     </>

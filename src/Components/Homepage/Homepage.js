@@ -16,14 +16,22 @@ export default function Homepage(props) {
   const joinRoom = async (e) => {
     e.preventDefault();
     if (roomCode) {
+      if (!validRoomCode(roomCode)) {
+        setError('[!] the room code should only contain alphanumerics [!]')
+        return;
+      }
       let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
       if (res.data.num_players < 2) {
-        history.push(`/${roomCode}`);
         setSubmitted(true);
+        history.push(`/${roomCode}`);
       } else {
         setError('[!] that room is already full [!]');
       }
     }
+  }
+
+  const validRoomCode = (roomCode) => {
+    return roomCode.match(/^[0-9a-zA-Z]+$/);
   }
 
   return (

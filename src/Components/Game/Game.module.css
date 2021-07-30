@@ -138,7 +138,7 @@
   font-size: 1.25vw;
   left: 5vw;
   padding: 1vw;
-  background-color: rgba(0, 0, 0, 0.26);
+  background-color: rgba(0, 0, 0, 0.40);
   position: absolute;
   top: 8vw;
   box-sizing: border-box;
@@ -336,4 +336,109 @@ input:focus {
   width: 65vw;
   text-align: center;
   font-size: 0.9vw;
+}
+
+.info {
+  position: absolute;
+  left: 87vw;
+  top: 3vw;
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.40);
+  transition-property: background-color;
+  transition-duration: 0.5s;
+  text-align: center;
+  font-size: 1.25vw;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 0.6vw;
+}
+
+.info:hover {
+  background-color: rgba(0, 0, 0, 0.50);
+}
+
+.flipper {
+  position: absolute;
+  top: 49vw;
+  left: 60vw;
+  font-size: 1.25vw;
+  background-color: rgba(0, 0, 0, 0.20);
+  padding: 0.5vw;
+  box-sizing: border-box;
+  height: 2.6vw;
+  width: 5vw;
+  text-align: center;
+  color: rgb(168, 168, 168);
+  border-radius: 0.5vw;
+  opacity: 1;
+  transition-property: opacity;
+  transition-duration: 0.5s;
+}
+
+.helpContainer {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.40);
+  z-index: 50;
+}
+
+.helpPanel {
+  width: 48vw;
+  top: 4vw;
+  background-color: white;
+  left: 26vw;
+  position: absolute;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  color: rgb(58, 58, 58);
+  padding: 1vw;
+  box-sizing: border-box;
+  z-index: 50;
+}
+
+.helpTitle {
+  width: 100%;
+  text-align: center;
+  font-size: 3vw;
+}
+
+hr {
+  border-style: dotted;
+}
+
+.fullWidthTable {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 1.1vw;
+}
+
+.helpOkButton {
+  width: 20vw;
+  margin-left: 13vw;
+  position: relative;
+  margin-top: 1vw;
+  color: white;
+  background-color: rgb(34, 34, 34);
+}
+
+.helpOkButton:hover {
+  background-color: rgb(15, 15, 15);
+}
+
+li {
+  padding: 0.25vw;
+}
+
+td.lineOnRight {
+  border-right: 1px dotted rgb(58, 58, 58);
+}
+
+td.help {
+  padding-right: 1vw;
+  vertical-align: top;
 }

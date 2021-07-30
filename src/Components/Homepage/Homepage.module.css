@@ -108,8 +108,8 @@ input:focus {
 
 .errorDiv {
   position: absolute;
-  width: 30vw;
-  left: 35vw;
+  width: 60vw;
+  left: 20vw;
   top: 36vw;
   text-align: center;
   padding: 1vw;
