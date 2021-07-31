@@ -5,8 +5,8 @@ import io from 'socket.io-client';
 import axios from "axios";
 import { useEffect, useState } from 'react';
 
-let CONNECTION_PORT = 'http://localhost:4000/';
-// let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+// let CONNECTION_PORT = 'http://localhost:4000/';
+let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
 const SQUARE_WIDTH = 5;
