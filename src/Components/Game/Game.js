@@ -64,6 +64,11 @@ export default function Game(props) {
   const [nukePosition, setNukePosition] = useState(null);
   // Other
   const [showHelp, setShowHelp] = useState(false);
+  const [isCaptain, setIsCaptain] = useState(false);
+  // Leaderboard
+  const [leaderboard, setLeaderboard] = useState(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardId, setLeaderboardId] = useState(null);
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
@@ -85,6 +90,7 @@ export default function Game(props) {
 
   useEffect(() => {
     const setData = (data) => {
+      setGameState(data.game_state);
       setScore(data.score);
       setTurns(data.turns);
       setEnemies(data.enemies);
@@ -111,7 +117,6 @@ export default function Game(props) {
       setStreak(data.streak);
       setReviverPosition(data.reviver_position);
       setNukePosition(data.nuke_position);
-      setGameState(data.game_state);
 
       if (data.order.length === 1) {
         setTurnEnder(data.order[0]);
@@ -173,6 +178,7 @@ export default function Game(props) {
             setFriendPosition(playerPosition);
           }
         }
+        setShowLeaderboard(false);
       });
     }
   }, [yourUsername, friendUsername]);
@@ -195,7 +201,25 @@ export default function Game(props) {
         setGameStarted(true);
       });
     }
-  }, [yourUsername])
+  }, [yourUsername]);
+
+  useEffect(() => {
+    if (gameState === 'game_over' && isCaptain) {
+      socket.emit("send_score", props.match.params.id);
+    }
+  }, [gameState, isCaptain, props.match.params.id]);
+
+  useEffect(() => {
+    socket.on("leaderboard_ready", (data) => {
+      setLeaderboard(data.leaderboard);
+      if (data.made_leaderboard) {
+        setLeaderboardId(data.insertedId);
+      } else {
+        setLeaderboardId(null);
+      }
+      setShowLeaderboard(true);
+    });
+  }, [])
  
   const joinRoom = (e) => {
     if (!username || !character) {
@@ -216,6 +240,9 @@ export default function Game(props) {
           color: color,
           character: character
         }).then(unique_res => {
+          if (available_res.data.num_players === 0) {
+            setIsCaptain(true);
+          }
           if (unique_res.data.unique) {
             socket.emit("join_room", {
               room_id: props.match.params.id,
@@ -317,7 +344,7 @@ export default function Game(props) {
 
   const craftJoiningErrors = () => {
     return <>
-      {joiningErrors.map((reason, i) => <><span key={i}>{translateError(reason)}</span><br /></>)}
+      {joiningErrors.map((reason, i) => <span key={i}><span>{translateError(reason)}</span><br /></span>)}
     </>
   }
 
@@ -335,6 +362,32 @@ export default function Game(props) {
       err = "¿error?"
     }
     return `[!] ${err} [!]`
+  }
+
+  const renderLeaderboard = () => {
+    return <div className={styles.leaderboard}>
+        <div className={styles.leaderboardTitle}>
+          ↑ # ↑
+        </div>
+        <hr />
+        {showLeaderboard ? 
+          leaderboard.map((entry, i) => {
+            let yourScore = leaderboardId && leaderboardId === entry._id;
+            let highScore = i === 0;
+            return <div key={i} className={`${styles.leaderboardEntry} ${yourScore ? styles.yourScore : ''}`}>
+              <div className={`${styles.leaderboardScore} ${highScore ? styles.highScore : ''}`}>
+                {yourScore ? "> " : ''}{highScore ? "*" : ''}{entry.score}{highScore ? "*" : ''}{yourScore ? " <" : ''}
+              </div>
+              <div className={`${styles.leaderboardNames} ${yourScore ? styles.yourNames : ''}`}>
+                {entry.username_1} & {entry.username_2}
+              </div>
+            </div>
+          }) : 
+          <div className={styles.leaderboardLoading}>
+            fetching leaderboard...
+          </div>
+        }
+      </div>;
   }
 
   return (
@@ -473,6 +526,9 @@ export default function Game(props) {
                 press enter to try again
               </div>
             </div>
+            {
+              renderLeaderboard()
+            }
           </> : ''
         }
         {

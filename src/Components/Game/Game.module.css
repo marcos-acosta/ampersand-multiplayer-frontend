@@ -7,6 +7,7 @@
   text-align: center;
   text-shadow: 2px 2px 4px #0000006c;
   font-family: 'IBM Plex Mono';
+  z-index: 0;
 }
 
 .board {
@@ -143,6 +144,7 @@
   top: 8vw;
   box-sizing: border-box;
   height: 30vw;
+  z-index: 0;
 }
 
 .statsTable {
@@ -177,7 +179,6 @@
   left: 40vw;
   width: 45vw;
   height: 45vw;
-  background-color: white;
   background-color: rgba(0, 0, 0, 0.26);
   z-index: 20;
 }
@@ -189,7 +190,7 @@
   left: 52.5vw;
   background-color: white;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  top: 19.5vw;
+  top: 4.5vw;
   text-align: center;
   color: rgb(58, 58, 58);
   padding: 1vw;
@@ -207,7 +208,7 @@
 }
 
 .gameOverScore {
-  font-size: 2.6vw;
+  font-size: 3vw;
   position: absolute;
   top: 3.5vw;
   left: 0vw;
@@ -441,4 +442,57 @@ td.lineOnRight {
 td.help {
   padding-right: 1vw;
   vertical-align: top;
+}
+
+.leaderboard {
+  position: absolute;
+  top: 16vw;
+  background-color: white;
+  width: 20vw;
+  color: rgb(58, 58, 58);
+  box-sizing: border-box;
+  padding: 1vw;
+  z-index: 50;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  left: 52.5vw;
+}
+
+.leaderboardEntry {
+  width: 100%;
+  height: 5vw;
+  text-align: center;
+}
+
+.leaderboardScore {
+  font-size: 2vw;
+}
+
+.leaderboardScore.highScore {
+  font-weight: bold;
+}
+
+.leaderboardNames {
+  color: rgb(110, 110, 110);
+}
+
+.yourScore {
+  background-color: rgb(44, 44, 44);
+  color: white;
+}
+
+.yourNames {
+  color: rgb(231, 231, 231);
+}
+
+.leaderboardTitle {
+  width: 100%;
+  text-align: center;
+  font-size: 3vw;
+  margin-bottom: 1vw;
+}
+
+.leaderboardLoading {
+  width: 100%;
+  text-align: center;
+  margin-top: 1vw;
 }
