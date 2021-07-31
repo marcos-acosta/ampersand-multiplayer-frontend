@@ -496,3 +496,7 @@ td.help {
   text-align: center;
   margin-top: 1vw;
 }
+
+.deadUsername {
+  color: rgb(197, 197, 197);
+}

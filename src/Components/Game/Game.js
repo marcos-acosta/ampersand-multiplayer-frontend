@@ -5,8 +5,8 @@ import io from 'socket.io-client';
 import axios from "axios";
 import { useEffect, useState } from 'react';
 
-// let CONNECTION_PORT = 'http://localhost:4000/';
-let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+let CONNECTION_PORT = 'http://localhost:4000/';
+// let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 let socket;
 
 const SQUARE_WIDTH = 5;
@@ -470,11 +470,11 @@ export default function Game(props) {
           <div className={`${styles.turnsContainer} ${styles.grayText}`}>
             {turns}
           </div>
-          <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''}`}>
+          <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''} ${!youAlive ? styles.deadUsername : ''}`}>
             {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[yourData.color]}>{yourUsername ? yourData.character : '?'}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
           </div>
           {friendUsername 
-            ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''}`}>
+            ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''} ${!friendAlive ? styles.deadUsername : ''}`}>
               {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[friendData.color]}>{friendData.character}</span>] {friendUsername}: {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
             </div>
             : <div className={`${styles.nameContainer}`}>
