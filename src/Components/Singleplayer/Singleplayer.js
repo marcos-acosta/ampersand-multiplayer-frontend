@@ -1,8 +1,7 @@
 import Enemy from './../Enemy/Enemy';
-import styles from './Game.module.css';
+import styles from './Singleplayer.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from 'socket.io-client';
-import axios from "axios";
 import { useEffect, useState } from 'react';
 
 let CONNECTION_PORT = 'http://localhost:4000/';
@@ -18,7 +17,6 @@ const defaultStats = {
   deaths: 0,
   bombs_collected: 0
 }
-const validKeys = new Set(['w', 'a', 's', 'd', ' ', 'r', 'Enter']);
 
 const validUsername = (username_) => {
   return username_.match(/^[0-9a-zA-Z_]+$/);
@@ -33,39 +31,29 @@ export default function Game(props) {
   const [joiningErrors, setJoiningErrors] = useState([]);
   const [joinedRoom, setJoinedRoom] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [whoseTurn, setWhoseTurn] = useState("");
   const [gameState, setGameState] = useState("normal");
   // Usernames
   const [yourUsername, setYourUsername] = useState("");
-  const [friendUsername, setFriendUsername] = useState("");
   // Personalization
   const [yourData, setYourData] = useState({});
-  const [friendData, setFriendData] = useState({});
   // Alive-ness
   const [youAlive, setYouAlive] = useState(true);
-  const [friendAlive, setFriendAlive] = useState(true);
   // Shared stats
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [turns, setTurns] = useState(0);
-  const [turnEnder, setTurnEnder] = useState("");
   // Other stats
   const [yourStats, setYourStats] = useState(defaultStats);
-  const [friendStats, setFriendStats] = useState(defaultStats);
   // Position
   const [yourPosition, setYourPosition] = useState([]);
-  const [friendPosition, setFriendPosition] = useState([]);
   // Bombs
-  const [yourBombs, setYourBombs] = useState(2);
-  const [friendBombs, setFriendBombs] = useState(2);
+  const [yourBombs, setYourBombs] = useState(3);
   // Spawnables
   const [enemies, setEnemies] = useState([]);
   const [bombs, setBombs] = useState([]);
-  const [reviverPosition, setReviverPosition] = useState(null);
   const [nukePosition, setNukePosition] = useState(null);
   // Other
   const [showHelp, setShowHelp] = useState(false);
-  const [isCaptain, setIsCaptain] = useState(false);
   // Leaderboard
   const [leaderboard, setLeaderboard] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -81,15 +69,13 @@ export default function Game(props) {
   useEffect(() => {
     if (gameStarted) {
       document.addEventListener("keydown", (event) => {
-        if (validKeys.has(event.key)) {
-          socket.emit('keypress', {
-            key: event.key,
-            room_id: props.match.params.id,
-          });
-        }
+        socket.emit('keypress', {
+          key: event.key,
+          room_id: '_s',
+        });
       })
     }
-  }, [gameStarted, props.match.params.id]);
+  }, [gameStarted]);
 
   useEffect(() => {
     const setData = (data) => {
@@ -99,118 +85,63 @@ export default function Game(props) {
       setEnemies(data.enemies);
       setBombs(data.bombs);
 
-      setYouAlive(data.players[yourUsername].alive);
-      setFriendAlive(data.players[friendUsername].alive);
+      setYouAlive(data.player.alive);
 
-      setYourBombs(data.players[yourUsername].num_bombs);
-      setFriendBombs(data.players[friendUsername].num_bombs);
+      setYourBombs(data.player.num_bombs);
 
       setYourStats({
-        hits: data.players[yourUsername].hits,
-        deaths: data.players[yourUsername].deaths,
-        bombs_collected: data.players[yourUsername].bombs_collected
-      });
-      setFriendStats({
-        hits: data.players[friendUsername].hits,
-        deaths: data.players[friendUsername].deaths,
-        bombs_collected: data.players[friendUsername].bombs_collected
+        hits: data.player.hits,
+        deaths: data.player.deaths,
+        bombs_collected: data.player.bombs_collected
       });
 
-      setWhoseTurn(data.order[data.whose_turn]);
       setStreak(data.streak);
-      setReviverPosition(data.reviver_position);
       setNukePosition(data.nuke_position);
-
-      if (data.order.length === 1) {
-        setTurnEnder(data.order[0]);
-      } else if (data.order.length === 2) {
-        setTurnEnder(data.order[1]);
-      } else {
-        setTurnEnder("");
-      }
     }
 
-    if (friendUsername) {
-      socket.on("game_update", (data) => {
-        let initial_target, final_pos;
-        if (data.playerMoved === yourUsername) {
-          final_pos = data.players[yourUsername].position;
-          if (vectorsEqual(data.direction, [0, 0])) {
-            // Animate "shaking"
-            setYourPosition(addVectors(final_pos, [0.15, 0]));
-            setTimeout(() => {
-              setYourPosition(addVectors(final_pos, [-0.15, 0]));
-              setTimeout(() => {
-                setYourPosition(final_pos);
-              }, 75);
-            }, 75);
-          } else {
-            // Overshoot, then return to final position
-            initial_target = getInitialTarget(final_pos, data.direction);
-            setYourPosition(initial_target);
-            setTimeout(() => {
-              setYourPosition(final_pos);
-            }, 100);
-          }
-          if (data.revivedFriend) {
-            setFriendPosition(data.players[friendUsername].position);
-          }
-        } else {
-          final_pos = data.players[friendUsername].position;
-          initial_target = getInitialTarget(final_pos, data.direction);
-          setFriendPosition(initial_target);
+    socket.on("game_update", (data) => {
+      let initial_target, final_pos;
+      final_pos = data.player.position;
+      if (vectorsEqual(data.direction, [0, 0])) {
+        // Animate "shaking"
+        setYourPosition(addVectors(final_pos, [0.15, 0]));
+        setTimeout(() => {
+          setYourPosition(addVectors(final_pos, [-0.15, 0]));
           setTimeout(() => {
-            setFriendPosition(final_pos);
-          }, 100);
-          if (data.revivedFriend) {
-            setYourPosition(data.players[yourUsername].position);
-          }
-        }
-        setData(data);
-      });
+            setYourPosition(final_pos);
+          }, 75);
+        }, 75);
+      } else {
+        // Overshoot, then return to final position
+        initial_target = getInitialTarget(final_pos, data.direction);
+        setYourPosition(initial_target);
+        setTimeout(() => {
+          setYourPosition(final_pos);
+        }, 100);
+      }
+      setData(data);
+    });
 
-      socket.on("room_reset", (data) => {
-        setData(data);
-        let usernames = Object.keys(data.players);
-        for (let i = 0; i < usernames.length; i++) {
-          let username = usernames[i];
-          let playerPosition = data.players[username].position
-          if (username === yourUsername) {
-            setYourPosition(playerPosition);
-          } else {
-            setFriendPosition(playerPosition);
-          }
-        }
-        setShowLeaderboard(false);
-      });
-    }
-  }, [yourUsername, friendUsername]);
+    socket.on("room_reset", (data) => {
+      setData(data);
+      setYourPosition(data.player.position);
+      setShowLeaderboard(false);
+    });
+  }, []);
 
   useEffect(() => {
-    if (yourUsername) {
-      socket.on("start_info", (data) => {
-        let yourInfo = data.players[yourUsername];
-        setYourPosition(yourInfo.position);
-        let otherUsername = Object.keys(data.players).find(username => username !== yourUsername);
-        let otherInfo = data.players[otherUsername];
-        setFriendUsername(otherUsername);
-        setFriendPosition(otherInfo.position);
-        setFriendData({
-          color: otherInfo.color,
-          character: otherInfo.character
-        })
-        setWhoseTurn(data.order[data.whose_turn]);
-        setTurnEnder(data.order[1]);
-        setGameStarted(true);
-      });
-    }
-  }, [yourUsername]);
+    socket.on("start_info", (data) => {
+      let yourInfo = data.player;
+      setYourPosition(yourInfo.position);
+      setGameStarted(true);
+    });
+  }, []);
 
   useEffect(() => {
-    if (gameState === 'game_over' && isCaptain) {
-      socket.emit("send_score", props.match.params.id);
+    if (gameState === 'game_over') {
+      socket.emit("send_score", "_s");
     }
-  }, [gameState, isCaptain, props.match.params.id]);
+  }, [gameState]);
 
   useEffect(() => {
     socket.on("leaderboard_ready", (data) => {
@@ -233,39 +164,18 @@ export default function Game(props) {
       setJoiningErrors(['alphanumerics']);
       return;
     }
-    axios.post(`${CONNECTION_PORT}room_available`, {room_id: props.match.params.id}).then(available_res => {
-      if (available_res.data.num_players >= 2) {
-        setJoiningErrors(['filled']);
-      } else {
-        axios.post(`${CONNECTION_PORT}uniquely_identifying`, {
-          room_id: props.match.params.id,
-          username: username,
-          color: color,
-          character: character
-        }).then(unique_res => {
-          if (available_res.data.num_players === 0) {
-            setIsCaptain(true);
-          }
-          if (unique_res.data.unique) {
-            socket.emit("join_room", {
-              room_id: props.match.params.id,
-              username: username,
-              color: color,
-              character: character,
-              singleplayer: false
-            });
-            setYourUsername(username);
-            setYourData({
-              color: color,
-              character: character
-            });
-            setJoinedRoom(true);
-          } else {
-            setJoiningErrors(unique_res.data.reasons);
-          }
-        });
-      }
+    socket.emit("join_room", {
+      username: username,
+      color: color,
+      character: character,
+      singleplayer: true
     });
+    setYourUsername(username);
+    setYourData({
+      color: color,
+      character: character
+    });
+    setJoinedRoom(true);    
   }
 
   const convertXYtoTopLeft = (position) => {
@@ -330,14 +240,6 @@ export default function Game(props) {
     </>
   }
 
-  const showReviver = () => {
-    if (reviverPosition) {
-      return <div
-      className={styles.reviver}
-      style={{...convertXYtoTopLeft(reviverPosition)}}>&</div>
-    }
-  }
-
   const showNuke = () => {
     if (nukePosition) {
       return <div
@@ -383,7 +285,7 @@ export default function Game(props) {
                 {yourScore ? "> " : ''}{highScore ? "*" : ''}{entry.score}{highScore ? "*" : ''}{yourScore ? " <" : ''}
               </div>
               <div className={`${styles.leaderboardNames} ${yourScore ? styles.yourNames : ''}`}>
-                {entry.username_1} & {entry.username_2}
+                {entry.username}
               </div>
             </div>
           }) : 
@@ -426,7 +328,7 @@ export default function Game(props) {
                 size="1"
                 {...bindCharacter} />
             </div>
-            <button onClick={joinRoom} className={`${styles.gameButton} ${styles.enterButton}`}>join room</button>
+            <button onClick={joinRoom} className={`${styles.gameButton} ${styles.enterButton}`}>start</button>
             <div className={`${styles.player} ${styles[color]} ${styles.demoPlayer}`}>
               {character}
             </div>
@@ -442,7 +344,6 @@ export default function Game(props) {
         <div className={styles.board}>
           {constructBoard()}
           {showEnemies()}
-          {showReviver()}
           {showBombs()}
           {showNuke()}
           { gameStarted
@@ -452,21 +353,11 @@ export default function Game(props) {
                 style={{...convertXYtoTopLeft(yourPosition), opacity: (youAlive ? 1 : 0)}}>
                 {yourData.character}
               </div>
-              <div 
-                className={`${styles.player} ${styles[friendData.color]}`}
-                style={{...convertXYtoTopLeft(friendPosition), opacity: (friendAlive ? 1 : 0)}}>
-                {friendData.character}
-              </div>
             </>
             : ''
           }
         </div>
         <div className={styles.info} onClick={() => setShowHelp(true)}>?</div>
-        <div 
-          className={styles.flipper} 
-          style={{opacity: (friendPosition.length && friendAlive && !areOdd(yourPosition, friendPosition)) ? 1 : 0}}>
-          []⇄()
-        </div> 
         <div className={styles.statsPanel}>
           <div className={styles.scoreContainer}>
             {score}
@@ -474,38 +365,18 @@ export default function Game(props) {
           <div className={`${styles.turnsContainer} ${styles.grayText}`}>
             {turns}
           </div>
-          <div className={`${styles.nameContainer} ${(yourUsername && whoseTurn === yourUsername) ? styles.selected : ''} ${!youAlive ? styles.deadUsername : ''}`}>
-            {whoseTurn === yourUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[yourData.color]}>{yourUsername ? yourData.character : '?'}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @ {turnEnder === yourUsername ? '⮐' : ''}
+          <div className={`${styles.nameContainer} ${styles.selected} ${!youAlive ? styles.deadUsername : ''}`}>
+            &nbsp;&nbsp;[<span className={styles[yourData.color]}>{yourUsername ? yourData.character : '?'}</span>] {yourUsername ? yourUsername : '---'}: {yourBombs} @
           </div>
-          {friendUsername 
-            ? <div className={`${styles.nameContainer} ${whoseTurn === friendUsername ? styles.selected : ''} ${!friendAlive ? styles.deadUsername : ''}`}>
-              {whoseTurn === friendUsername ? '> ' : '\u00A0\u00A0'}[<span className={styles[friendData.color]}>{friendData.character}</span>] {friendUsername}: {friendBombs} @ {turnEnder === friendUsername ? '⮐' : ''}
-            </div>
-            : <div className={`${styles.nameContainer}`}>
-                <span className={styles.grayText}>{'\u00A0\u00A0'}[?] waiting for partner...</span>
-              </div>
-            }
           <table className={styles.statsTable}>
             <tbody>
               <tr>
-                <td />
-                <td className={styles.grayText}>{yourUsername ? yourUsername : '---'}</td>
-                <td className={styles.grayText}>{friendUsername ? friendUsername : '---'}</td>
-              </tr>
-              <tr>
                 <td className={styles.grayText}>[]</td>
                 <td>{yourStats.hits}</td>
-                <td>{friendStats.hits}</td>
               </tr>
               <tr>
                 <td className={styles.grayText}>@←</td>
                 <td>{yourStats.bombs_collected}</td>
-                <td>{friendStats.bombs_collected}</td>
-              </tr>
-              <tr>
-                <td className={styles.grayText}>†</td>
-                <td>{yourStats.deaths}</td>
-                <td>{friendStats.deaths}</td>
               </tr>
             </tbody>
           </table>
@@ -555,7 +426,7 @@ export default function Game(props) {
                         <li>enemies adjacent to you will kill you on their turn</li>
                         <li><b>hitting the edge</b> is a valid strategy</li>
                         <li>enemies target the <b>nearest player</b></li>
-                        <li>press <b>space</b> or <b>r</b> to use a <b>bomb</b> (@)</li>
+                        <li>press <b>space</b> to use a <b>bomb</b> (@)</li>
                         <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
                       </ul>
                     </td>

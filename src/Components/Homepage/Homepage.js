@@ -4,8 +4,8 @@ import { useHistory } from 'react-router-dom';
 import { useInput } from '../../hooks/useInput';
 import axios from "axios";
 
-// let CONNECTION_PORT = 'http://localhost:4000/';
-let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
+let CONNECTION_PORT = 'http://localhost:4000/';
+// let CONNECTION_PORT = 'https://ampersand-backend.herokuapp.com/';
 
 export default function Homepage(props) {
   const { value:roomCode, bind: bindRoomCode } = useInput('');
@@ -23,12 +23,16 @@ export default function Homepage(props) {
       setSubmitted(true);
       let res = await axios.post(`${CONNECTION_PORT}room_available`, {room_id: roomCode});
       if (res.data.num_players < 2) {
-        history.push(`/${roomCode}`);
+        history.push(`/m/${roomCode}`);
       } else {
         setError('[!] that room is already full [!]');
         setSubmitted(false);
       }
     }
+  }
+
+  const joinSingleplayer = () => {
+    history.push('/s');
   }
 
   const validRoomCode = (roomCode) => {
@@ -43,9 +47,9 @@ export default function Homepage(props) {
       <div className={styles.subtitleText}>
         [] () [] & @
       </div>
-      <div className={`${styles.homepageButton} ${styles.singleplayer} ${styles.info}`}>
+      <div className={`${styles.homepageButton} ${styles.singleplayer}`} onClick={joinSingleplayer}>
         [singleplayer]←
-        <span className={styles.tooltiptext}>coming soon!</span>
+        {/* <span className={styles.tooltiptext}>coming soon!</span> */}
       </div>
       <div className={styles.multiplayerContents}>
         <form>
