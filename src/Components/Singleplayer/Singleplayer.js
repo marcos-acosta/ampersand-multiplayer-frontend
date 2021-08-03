@@ -412,7 +412,7 @@ export default function Game(props) {
                 {score}
               </div>
               <div className={`${styles.tryAgainText} ${styles.darkGrayText}`}>
-                <b>wasd</b> to try again to try again
+                <b>wasd</b> to try again
               </div>
             </div>
             {
