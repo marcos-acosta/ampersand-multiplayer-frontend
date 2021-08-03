@@ -16,9 +16,9 @@ const getInitialTarget = (pos, dir) => {
 const defaultStats = {
   hits: 0,
   deaths: 0,
-  bombs_collected: 0
+  bombs_collected: 0,
 }
-const validKeys = new Set(['w', 'a', 's', 'd', ' ', 'r', 'Enter']);
+const validKeys = new Set(['w', 'a', 's', 'd', ' ', 'r']);
 
 const validUsername = (username_) => {
   return username_.match(/^[0-9a-zA-Z_]+$/);
@@ -49,6 +49,7 @@ export default function Game(props) {
   const [streak, setStreak] = useState(0);
   const [turns, setTurns] = useState(0);
   const [turnEnder, setTurnEnder] = useState("");
+  const [longestStreak, setLongestStreak] = useState(0);
   // Other stats
   const [yourStats, setYourStats] = useState(defaultStats);
   const [friendStats, setFriendStats] = useState(defaultStats);
@@ -98,6 +99,7 @@ export default function Game(props) {
       setTurns(data.turns);
       setEnemies(data.enemies);
       setBombs(data.bombs);
+      setLongestStreak(data.longest_streak);
 
       setYouAlive(data.players[yourUsername].alive);
       setFriendAlive(data.players[friendUsername].alive);
@@ -493,17 +495,22 @@ export default function Game(props) {
                 <td className={styles.grayText}>{friendUsername ? friendUsername : '---'}</td>
               </tr>
               <tr>
-                <td className={styles.grayText}>[]</td>
+                <td className={styles.grayText}>[x]</td>
                 <td>{yourStats.hits}</td>
                 <td>{friendStats.hits}</td>
               </tr>
               <tr>
-                <td className={styles.grayText}>@←</td>
+                <td className={styles.grayText}>xxx</td>
+                <td>{longestStreak}</td>
+                <td>{longestStreak}</td>
+              </tr>
+              <tr>
+                <td className={styles.grayText}>@←&</td>
                 <td>{yourStats.bombs_collected}</td>
                 <td>{friendStats.bombs_collected}</td>
               </tr>
               <tr>
-                <td className={styles.grayText}>†</td>
+                <td className={styles.grayText}>{"{"}†{"}"}</td>
                 <td>{yourStats.deaths}</td>
                 <td>{friendStats.deaths}</td>
               </tr>
@@ -527,7 +534,7 @@ export default function Game(props) {
                 {score}
               </div>
               <div className={`${styles.tryAgainText} ${styles.darkGrayText}`}>
-                press enter to try again
+                press <b>space</b> to try again
               </div>
             </div>
             {
@@ -561,10 +568,10 @@ export default function Game(props) {
                     </td>
                     <td className={styles.help}>
                       <ul>
+                        <li>a bomb will <b>not harm your partner</b>, but <b>attacking them will</b></li>
                         <li>your partner can be revived by collecting a <b>&</b></li>
                         <li>clear all enemies on the board by collecting a <b>ø</b></li>
                         <li>the bombs you collect <b>are your own</b>, but are transferred to your partner in case of death as life insurance</li>
-                        <li>a revived player will receive <b>one bomb</b> from the reviver, provided they have ≥2</li>
                         <li>note that you and your partner may see enemies differently; a <b>helpful indicator</b> is provided below the board</li>
                         <li><b>occasionally</b>, have fun</li>
                       </ul>

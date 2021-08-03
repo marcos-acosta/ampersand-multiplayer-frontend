@@ -15,8 +15,10 @@ const getInitialTarget = (pos, dir) => {
 const defaultStats = {
   hits: 0,
   deaths: 0,
-  bombs_collected: 0
+  bombs_collected: 0,
+  longest_streak: 0
 }
+const validKeys = new Set(['w', 'a', 's', 'd', ' ', 'r']);
 
 const validUsername = (username_) => {
   return username_.match(/^[0-9a-zA-Z_]+$/);
@@ -69,10 +71,12 @@ export default function Game(props) {
   useEffect(() => {
     if (gameStarted) {
       document.addEventListener("keydown", (event) => {
-        socket.emit('keypress', {
-          key: event.key,
-          room_id: '_s',
-        });
+        if (validKeys.has(event.key)) {
+          socket.emit('keypress', {
+            key: event.key,
+            room_id: '_s',
+          });
+        }
       })
     }
   }, [gameStarted]);
@@ -92,7 +96,8 @@ export default function Game(props) {
       setYourStats({
         hits: data.player.hits,
         deaths: data.player.deaths,
-        bombs_collected: data.player.bombs_collected
+        bombs_collected: data.player.bombs_collected,
+        longest_streak: data.longest_streak
       });
 
       setStreak(data.streak);
@@ -358,6 +363,11 @@ export default function Game(props) {
           }
         </div>
         <div className={styles.info} onClick={() => setShowHelp(true)}>?</div>
+        <div 
+          className={styles.waiting} 
+          style={{opacity: joinedRoom && !gameStarted ? 1 : 0}}>
+          waiting for server...
+        </div> 
         <div className={styles.statsPanel}>
           <div className={styles.scoreContainer}>
             {score}
@@ -371,11 +381,15 @@ export default function Game(props) {
           <table className={styles.statsTable}>
             <tbody>
               <tr>
-                <td className={styles.grayText}>[]</td>
+                <td className={styles.grayText}>[x]</td>
                 <td>{yourStats.hits}</td>
               </tr>
               <tr>
-                <td className={styles.grayText}>@←</td>
+                <td className={styles.grayText}>xxx</td>
+                <td>{yourStats.longest_streak}</td>
+              </tr>
+              <tr>
+                <td className={styles.grayText}>@←&</td>
                 <td>{yourStats.bombs_collected}</td>
               </tr>
             </tbody>
@@ -398,7 +412,7 @@ export default function Game(props) {
                 {score}
               </div>
               <div className={`${styles.tryAgainText} ${styles.darkGrayText}`}>
-                press enter to try again
+                press <b>space</b> to try again
               </div>
             </div>
             {
@@ -421,22 +435,17 @@ export default function Game(props) {
                         <li>use <b>wasd</b></li>
                         <li><b>enemies</b> look like [] and ()</li>
                         <li>[] and () behave exactly alike, but <b>the distinction is helpful</b> to the player</li>
-                        <li>enemies move <b>after you and your partner</b> move</li>
+                        <li>enemies move <b>after you move</b></li>
                         <li>kill an enemy <b>adjacent to you</b> using wasd</li>
                         <li>enemies adjacent to you will kill you on their turn</li>
-                        <li><b>hitting the edge</b> is a valid strategy</li>
-                        <li>enemies target the <b>nearest player</b></li>
-                        <li>press <b>space</b> to use a <b>bomb</b> (@)</li>
-                        <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
                       </ul>
                     </td>
                     <td className={styles.help}>
                       <ul>
-                        <li>your partner can be revived by collecting a <b>&</b></li>
+                        <li><b>hitting the edge</b> is a valid strategy</li>
+                        <li>press <b>space</b> to use a <b>bomb</b> (@)</li>
+                        <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
                         <li>clear all enemies on the board by collecting a <b>ø</b></li>
-                        <li>the bombs you collect <b>are your own</b>, but are transferred to your partner in case of death as life insurance</li>
-                        <li>a revived player will receive <b>one bomb</b> from the reviver, provided they have ≥2</li>
-                        <li>note that you and your partner may see enemies differently; a <b>helpful indicator</b> is provided below the board</li>
                         <li><b>occasionally</b>, have fun</li>
                       </ul>
                     </td>

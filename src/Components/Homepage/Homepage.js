@@ -49,7 +49,6 @@ export default function Homepage(props) {
       </div>
       <div className={`${styles.homepageButton} ${styles.singleplayer}`} onClick={joinSingleplayer}>
         [singleplayer]←
-        {/* <span className={styles.tooltiptext}>coming soon!</span> */}
       </div>
       <div className={styles.multiplayerContents}>
         <form>
