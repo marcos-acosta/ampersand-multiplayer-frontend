@@ -109,10 +109,27 @@ export default function Docs(props) {
       A reviver will spawn with 20% chance (<span className={styles.gh}>threshold = 0.8</span>) every turn where no reviver is on the board
       and only one player is alive.
     </p>
-    <h3>Life insurance / bomb donation </h3>
+    <h3>Life insurance / bomb donation</h3>
     <p>
       Upon a player's death, all their bombs are immediately transferred to the living player. When a player is revived, they receive one bomb
       from their reviver, provided the reviver has at least 2 bombs.
+    </p>
+    <h3>Scoring</h3>
+    <p>
+      The scoring system is outlined below:
+      <ul>
+        <li>One complete turn: <span className={styles.gh}>1</span> point</li>
+        <li>Enemy killed without bomb or null:  <span className={styles.gh}>10 + 5 * (streak - 1)</span> points</li>
+        <ul>
+          <li>i.e. <span className={styles.gh}>10</span> points for first kill in streak, <span className={styles.gh}>15</span> for second, <span className={styles.gh}>20</span> for third, etc.</li>
+          <li>Note that a streak is broken by any player failing to kill an enemy</li>
+          <li>Bombs and nulls also break streaks</li>
+        </ul>
+        <li>Enemy killed with bomb: <span className={styles.gh}>5</span> points</li>
+        <li>Collect null: <span className={styles.gh}>50</span> points</li>
+        <li>Collect reviver: <span className={styles.gh}>50</span> points</li>
+        <li>Kill partner: <span className={styles.gh}>-50</span> points</li>
+      </ul>
     </p>
     <div className={styles.docsTitle}>
       &
