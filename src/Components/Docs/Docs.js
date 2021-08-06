@@ -122,8 +122,7 @@ export default function Docs(props) {
         <li>Enemy killed without bomb or null:  <span className={styles.gh}>10 + 5 * (streak - 1)</span> points</li>
         <ul>
           <li>i.e. <span className={styles.gh}>10</span> points for first kill in streak, <span className={styles.gh}>15</span> for second, <span className={styles.gh}>20</span> for third, etc.</li>
-          <li>Note that a streak is broken by any player failing to kill an enemy</li>
-          <li>Bombs and nulls also break streaks</li>
+          <li>Note that a streak is broken by any player failing to kill an enemy (excluding bombs and nulls)</li>
         </ul>
         <li>Enemy killed with bomb: <span className={styles.gh}>5</span> points</li>
         <li>Collect null: <span className={styles.gh}>50</span> points</li>
