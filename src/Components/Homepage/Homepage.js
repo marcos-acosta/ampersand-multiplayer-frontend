@@ -48,7 +48,7 @@ export default function Homepage(props) {
         [] () [] & @
       </div>
       <div className={`${styles.homepageButton} ${styles.singleplayer}`} onClick={joinSingleplayer}>
-        [singleplayer]←
+        & (classic)
       </div>
       <div className={styles.multiplayerContents}>
         <form>
@@ -58,7 +58,7 @@ export default function Homepage(props) {
             className={styles.inputRoomCode}
             {...bindRoomCode} />
             {!submitted ? 
-              <button onClick={joinRoom} className={`${styles.homepageButton} ${styles.multiplayer}`}> [multiplayer]← </button>
+              <button onClick={joinRoom} className={`${styles.homepageButton} ${styles.multiplayer}`}> && </button>
               : <div className={`${styles.homepageButton} ${styles.multiplayer}`}> loading... </div>}
         </form>
       </div>

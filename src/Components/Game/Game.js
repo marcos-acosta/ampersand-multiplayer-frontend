@@ -1,6 +1,7 @@
 import Enemy from './../Enemy/Enemy';
 import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
+import { Link } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from "axios";
 import { useEffect, useState } from 'react';
@@ -67,6 +68,7 @@ export default function Game(props) {
   // Other
   const [showHelp, setShowHelp] = useState(false);
   const [isCaptain, setIsCaptain] = useState(false);
+  const [partnerDisconnected, setPartnerDisconnected] = useState(false);
   // Leaderboard
   const [leaderboard, setLeaderboard] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -91,6 +93,12 @@ export default function Game(props) {
       })
     }
   }, [gameStarted, props.match.params.id]);
+
+  useEffect(() => {
+    socket.on("partner_disconnected", () => {
+      setPartnerDisconnected(true);
+    });
+  }, [])
 
   useEffect(() => {
     const setData = (data) => {
@@ -465,6 +473,11 @@ export default function Game(props) {
         </div>
         <div className={styles.info} onClick={() => setShowHelp(true)}>?</div>
         <div 
+          className={styles.playerLeft} 
+          style={{opacity: partnerDisconnected ? 1 : 0}}>
+          partner disconnected
+        </div> 
+        <div 
           className={styles.flipper} 
           style={{opacity: (friendPosition.length && friendAlive && !areOdd(yourPosition, friendPosition)) ? 1 : 0}}>
           []⇄()
@@ -549,38 +562,22 @@ export default function Game(props) {
                 ¿&?
               </div>
               <hr />
-              <table className={styles.fullWidthTable}>
-                <tbody>
-                  <tr>
-                    <td className={`${styles.lineOnRight} ${styles.help}`}>
-                      <ul>
-                        <li>use <b>wasd</b></li>
-                        <li><b>enemies</b> look like [] and ()</li>
-                        <li>[] and () behave exactly alike, but <b>the distinction is helpful</b> to the player</li>
-                        <li>enemies move <b>after you and your partner</b> move</li>
-                        <li>kill an enemy <b>adjacent to you</b> using wasd</li>
-                        <li>enemies adjacent to you will kill you on their turn</li>
-                        <li><b>hitting the edge</b> is a valid strategy</li>
-                        <li>enemies target the <b>nearest player</b></li>
-                        <li>press <b>space</b> or <b>r</b> to use a <b>bomb</b> (@)</li>
-                        <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
-                      </ul>
-                    </td>
-                    <td className={styles.help}>
-                      <ul>
-                        <li>a bomb will <b>not harm your partner</b>, but <b>attacking them will</b></li>
-                        <li>your partner can be revived by collecting a <b>&</b></li>
-                        <li>clear all enemies on the board by collecting a <b>ø</b></li>
-                        <li>the bombs you collect <b>are your own</b>, but are transferred to your partner in case of death as life insurance</li>
-                        <li>note that you and your partner may see enemies differently; a <b>helpful indicator</b> is provided below the board</li>
-                        <li><b>occasionally</b>, have fun</li>
-                      </ul>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className={styles.helpBody}>
+                <p>
+                  It seems you need help. Use <span className={styles.grayHighlight}>wasd</span> to move and attack enemies directly
+                  adjacent to you. Enemies move after you and your partner do, and can only move one space orthogonally. If an enemy is 
+                  directly beside you, they will kill you on their turn. Enemies target the nearest player. Collect bombs
+                  (<span className={styles.grayHighlight}>@</span>) and use them with <span className={styles.grayHighlight}>space</span> or&nbsp;
+                  <span className={styles.grayHighlight}>r</span>. Bombs clear any enemies surrounding you, but don't harm your partner. 
+                  Hitting the edge of the board counts as a valid move. Picking up a null (<span className={styles.grayHighlight}>ø</span>) immediately
+                  clears all enemies on the board. Revive your partner by collecting a reviver (<span className={styles.grayHighlight}>&</span>).
+                </p>
+                <p>
+                  See the <Link to="/docs" target="_blank"><u><span className={styles.grayHighlight}>detailed docs</span></u></Link> for excessive detail.
+                </p>
+              </div>
               <div className={`${styles.gameButton} ${styles.helpOkButton}`} onClick={() => setShowHelp(false)}>
-                ok
+                &!
               </div>
             </div>
           </div> : ''

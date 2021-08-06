@@ -1,6 +1,7 @@
 import Enemy from './../Enemy/Enemy';
 import styles from './Singleplayer.module.css';
 import { useInput } from "../../hooks/useInput";
+import { Link } from 'react-router-dom';
 import io from 'socket.io-client';
 import { useEffect, useState } from 'react';
 
@@ -427,33 +428,21 @@ export default function Game(props) {
                 ¿&?
               </div>
               <hr />
-              <table className={styles.fullWidthTable}>
-                <tbody>
-                  <tr>
-                    <td className={`${styles.lineOnRight} ${styles.help}`}>
-                      <ul>
-                        <li>use <b>wasd</b></li>
-                        <li><b>enemies</b> look like [] and ()</li>
-                        <li>[] and () behave exactly alike, but <b>the distinction is helpful</b> to the player</li>
-                        <li>enemies move <b>after you move</b></li>
-                        <li>kill an enemy <b>adjacent to you</b> using wasd</li>
-                        <li>enemies adjacent to you will kill you on their turn</li>
-                      </ul>
-                    </td>
-                    <td className={styles.help}>
-                      <ul>
-                        <li><b>hitting the edge</b> is a valid strategy</li>
-                        <li>press <b>space</b> to use a <b>bomb</b> (@)</li>
-                        <li>bombs kill all enemies immediately <b>adjacent and diagonal</b> to you</li>
-                        <li>clear all enemies on the board by collecting a <b>ø</b></li>
-                        <li><b>occasionally</b>, have fun</li>
-                      </ul>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className={styles.helpBody}>
+                <p>
+                  It seems you need help. Use <span className={styles.grayHighlight}>wasd</span> to move and attack enemies directly
+                  adjacent to you. Enemies move after you do, and can only move one space orthogonally. If an enemy is directly
+                  beside you, they will kill you on their turn. Collect bombs (<span className={styles.grayHighlight}>@</span>)
+                  and use them with <span className={styles.grayHighlight}>space</span> or <span className={styles.grayHighlight}>r</span>.
+                  Bombs clear any enemies surrounding you. Hitting the edge of the board counts as a valid move. Picking up a null
+                  (<span className={styles.grayHighlight}>ø</span>) immediately clears all enemies on the board.
+                </p>
+                <p>
+                  See the <Link to="/docs" target="_blank"><u><span className={styles.grayHighlight}>detailed docs</span></u></Link> for excessive detail.
+                </p>
+              </div>
               <div className={`${styles.gameButton} ${styles.helpOkButton}`} onClick={() => setShowHelp(false)}>
-                ok
+                &!
               </div>
             </div>
           </div> : ''

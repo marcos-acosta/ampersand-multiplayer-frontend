@@ -1,0 +1,40 @@
+.mainBody {
+  background-color: white;
+  width: 100%;
+  color: rgb(58, 58, 58);
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-top: 2vw;
+  padding-left: 8vw;
+  padding-right: 8vw;
+  padding-bottom: 4vw;
+  box-sizing: border-box;
+  font-size: 1.2vw;
+}
+
+.docsTitle {
+  width: 100%;
+  text-align: center;
+  font-size: 4vw;
+}
+
+.docsSubtitle {
+  width: 100%;
+  text-align: center;
+  font-size: 1.8vw;
+  color: rgb(122, 122, 122);
+}
+
+.gh {
+  background-color: rgb(224, 224, 224);
+}
+
+.cb {
+  background-color: rgb(224, 224, 224);
+  width: 90%;
+  margin-top: 1vw;
+  margin-bottom: 1vw;
+  padding: 1.5vw;
+  box-sizing: border-box;
+}
